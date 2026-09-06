@@ -1,213 +1,340 @@
+"""Dhi — a premium, voice-first AI assistant.
+
+Run with:
+    streamlit run app.py
+or simply double-click ``Dhi.bat`` on Windows.
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import time
+
 import streamlit as st
-from gtts import gTTS
-import wikipedia
-import pyjokes
-import requests
-import datetime
-import base64
-import io
-import urllib.parse
-import speech_recognition as sr
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, AudioProcessorBase
-import av
-import threading
+import streamlit.components.v1 as components
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
 
-# --- Core Functions ---
+from modules import brain, skills, speech, ui_styles
+from modules.webrtc_audio import AudioProcessor
 
-def text_to_speech_autoplay(text):
-    """Generates speech and returns HTML for an invisible autoplaying audio player."""
-    try:
-        tts = gTTS(text=text, lang='en')
-        mp3_fp = io.BytesIO()
-        tts.write_to_fp(mp3_fp)
-        mp3_fp.seek(0)
-        b64 = base64.b64encode(mp3_fp.read()).decode()
-        audio_html = f"""
-            <audio autoplay="true">
-            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-            """
-        return audio_html
-    except Exception as e:
-        st.error(f"Error in TTS: {e}")
-        return ""
-
-def get_weather(city):
-    """Fetches weather information from OpenWeatherMap API."""
-    api_key = st.secrets.get("OPENWEATHER_API_KEY")
-    if not api_key:
-        st.session_state.assistant_response_display = "Weather API key not configured."
-        return "Error: Weather API key is not configured."
-
-    base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    complete_url = f"{base_url}appid={api_key}&q={city}&units=metric"
-    try:
-        response = requests.get(complete_url)
-        x = response.json()
-        if x.get("cod") != 200:
-            return f"Sorry, I couldn't find the weather for {city}. Reason: {x.get('message', 'Unknown error')}."
-        main = x["main"]
-        temperature = main["temp"]
-        description = x["weather"][0]["description"]
-        return f"The temperature in {city} is {temperature}°C with {description}."
-    except requests.exceptions.RequestException as e:
-        return f"An error occurred: {e}"
-
-def process_command(command):
-    """Processes the command and updates the session state."""
-    response = "I could not hear you properly or the command is not recognized."
-    response_display = response
-
-    if not command:
-        response = "Empty command received."
-        response_display = response
-    elif 'play' in command:
-        song = command.replace('play', '').strip()
-        search_query = urllib.parse.quote(song)
-        youtube_url = f"https://www.youtube.com/results?search_query={search_query}"
-        response = f"Here is a link to search for {song} on YouTube."
-        response_display = f"Here is a link for '{song}':\n[Click here to watch]({youtube_url})"
-    elif 'time' in command:
-        time_str = datetime.datetime.now().strftime('%I:%M %p')
-        response = f'The current time is {time_str}'
-        response_display = response
-    elif 'who is' in command:
-        person = command.replace('who is', '').strip()
-        try:
-            info = wikipedia.summary(person, 1)
-            response = info
-            response_display = response
-        except wikipedia.exceptions.PageError:
-            response = f"Sorry, I could not find any information on {person}."
-            response_display = response
-        except wikipedia.exceptions.DisambiguationError:
-            response = f"Multiple results for {person}. Please be more specific."
-            response_display = response
-    elif 'joke' in command:
-        joke = pyjokes.get_joke()
-        response = joke
-        response_display = response
-    elif 'weather in' in command:
-        parts = command.split('weather in')
-        if len(parts) > 1:
-            city = parts[1].strip()
-            response = get_weather(city)
-        else:
-            response = "Please specify a city, like: 'weather in London'."
-        response_display = response
-    elif 'stop' in command or 'exit' in command:
-        response = 'Goodbye!'
-        response_display = response
-        st.session_state.audio_to_play = text_to_speech_autoplay(response)
-        st.stop()
-    
-    st.session_state.last_command = command
-    st.session_state.assistant_response = response
-    st.session_state.assistant_response_display = response_display
-    st.session_state.audio_to_play = text_to_speech_autoplay(response)
-
-# --- WebRTC Audio Processing ---
-recognizer = sr.Recognizer()
-lock = threading.Lock()
-audio_buffer = io.BytesIO()
-
-class AudioProcessor(AudioProcessorBase):
-    def __init__(self):
-        super().__init__()
-        self._is_recording = False
-
-    def start(self):
-        with lock:
-            self._is_recording = True
-            audio_buffer.seek(0)
-            audio_buffer.truncate(0)
-
-    def stop(self):
-        with lock:
-            self._is_recording = False
-            return self.process_audio()
-
-    def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
-        if self._is_recording:
-            # Convert audio frame to raw PCM data
-            pcm_s16 = frame.to_ndarray(format="s16")
-            with lock:
-                audio_buffer.write(pcm_s16.tobytes())
-        return frame
-
-    def process_audio(self):
-        with lock:
-            audio_buffer.seek(0)
-            # The sample rate and width must match what WebRTC provides. 
-            # 48000 is a common rate for WebRTC. Let's try adjusting if issues persist.
-            audio_data = sr.AudioData(audio_buffer.read(), sample_rate=48000, sample_width=2)
-        try:
-            command = recognizer.recognize_google(audio_data).lower()
-            if 'alexa' in command:
-                command = command.replace('alexa', '').strip()
-            return command
-        except sr.UnknownValueError:
-            return "Could not understand audio"
-        except sr.RequestError as e:
-            return f"Speech recognition request failed: {e}"
-
-# --- Streamlit UI ---
-st.set_page_config(page_title="Voice Assistant", layout="centered")
-
-st.title("🗣️ Voice Assistant 'Alexa'")
-st.markdown("""
-**How to use:**
-1. Click **Start** on the component below and **Allow** microphone access.
-2. Say your command.
-3. Click **Stop**. Alexa will process your command.
-""")
-st.markdown("---")
-
-# Initialize session state
-if 'last_command' not in st.session_state:
-    st.session_state.last_command = ""
-if 'assistant_response_display' not in st.session_state:
-    st.session_state.assistant_response_display = ""
-if 'audio_to_play' not in st.session_state:
-    st.session_state.audio_to_play = ""
-
-webrtc_ctx = webrtc_streamer(
-    key="speech-to-text",
-    mode=WebRtcMode.SENDONLY,
-    audio_processor_factory=AudioProcessor,
-    media_stream_constraints={"video": False, "audio": True},
-    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+# --------------------------------------------------------------------------- #
+#  Page setup & session state
+# --------------------------------------------------------------------------- #
+st.set_page_config(
+    page_title="Dhi · AI Voice Assistant",
+    page_icon="🌸",
+    layout="centered",
+    initial_sidebar_state="expanded",
 )
+ui_styles.inject_css()
 
-if webrtc_ctx.state.playing and webrtc_ctx.audio_processor:
-    st.info("Recording... Click Stop when you are done.")
-    # The start() method is now implicitly handled by the component's state
-elif not webrtc_ctx.state.playing and webrtc_ctx.audio_processor and webrtc_ctx.audio_processor._is_recording:
-    command = webrtc_ctx.audio_processor.stop()
-    if command:
-        st.session_state.last_command = command
-        process_command(command)
+
+def _init_state() -> None:
+    ss = st.session_state
+    ss.setdefault("messages", [])            # chat history
+    ss.setdefault("notes", [])               # voice notes
+    ss.setdefault("timers", [])              # [{"label", "end", "duration"}]
+    ss.setdefault("command_count", 0)
+    ss.setdefault("session_started", dt.datetime.now())
+    ss.setdefault("user_name", None)
+    ss.setdefault("default_city", None)
+    ss.setdefault("autoplay_html", "")       # TTS to play on this render
+    ss.setdefault("pending_voice", [])       # voice transcripts awaiting processing
+    # settings (widget-backed)
+    ss.setdefault("set_voice", True)          # speak replies aloud
+    ss.setdefault("set_audio_player", False)  # show replay player in bubbles
+    ss.setdefault("set_handsfree", True)      # auto-send utterances after a pause
+    ss.setdefault("set_mic", True)            # render the microphone component
+    ss.setdefault("set_wake", True)           # strip leading wake word ("alexa")
+    ss.setdefault("set_rec_lang", "English (US)")
+    ss.setdefault("set_tts_lang", "English (US)")
+
+
+_init_state()
+
+
+# --------------------------------------------------------------------------- #
+#  Command handling
+# --------------------------------------------------------------------------- #
+MAX_MESSAGES = 80
+
+
+def _say(spoken: str, display: str, icon: str = "✨") -> None:
+    """Append an assistant message (with TTS attached when voice is on)."""
+    audio = None
+    if st.session_state.set_voice and spoken:
+        audio = speech.tts_bytes(spoken, st.session_state.set_tts_lang)
+        if audio:
+            st.session_state.autoplay_html = speech.autoplay_html(audio)
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": display,
+        "icon": icon,
+        "audio": audio,
+        "ts": dt.datetime.now().strftime("%H:%M"),
+    })
+    st.session_state.messages = st.session_state.messages[-MAX_MESSAGES:]
+
+
+def handle_command(text: str, source: str = "text") -> None:
+    """Process one user command end-to-end and refresh the UI."""
+    text = (text or "").strip()
+    if not text:
+        return
+    st.session_state.command_count += 1
+    st.session_state.messages.append({
+        "role": "user",
+        "content": text,
+        "source": source,
+        "ts": dt.datetime.now().strftime("%H:%M"),
+    })
+
+    ctx = {
+        "user_name": st.session_state.user_name,
+        "notes": st.session_state.notes,
+        "default_city": st.session_state.default_city,
+    }
+    reply = brain.respond(text, ctx)
+
+    if reply.action == "set_name":
+        st.session_state.user_name = reply.data.get("name")
+    elif reply.action == "set_timer":
+        st.session_state.timers.append({
+            "label": reply.data.get("label", "Timer"),
+            "end": time.time() + int(reply.data.get("seconds", 0)),
+            "duration": int(reply.data.get("seconds", 0)),
+        })
+
+    st.session_state.notes = ctx.get("notes", st.session_state.notes)
+    _say(reply.spoken, reply.display, reply.icon)
+    st.rerun()
+
+
+def _drain_voice() -> None:
+    """Process any transcripts captured by the microphone."""
+    for text in st.session_state.pending_voice:
+        if text.startswith("[speech service error"):
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "📡 I couldn't reach the speech service — check your connection.",
+                "icon": "📡", "audio": None,
+                "ts": dt.datetime.now().strftime("%H:%M"),
+            })
+            continue
+        handle_command(text, source="voice")   # reruns internally
+    st.session_state.pending_voice = []
+
+
+def _transcript_markdown() -> str:
+    lines = [f"# Dhi chat export — {dt.datetime.now():%Y-%m-%d %H:%M}", ""]
+    for m in st.session_state.messages:
+        who = "🧑 You" if m["role"] == "user" else "🌸 Dhi"
+        lines.append(f"**{who}** _({m.get('ts', '')})_:  ")
+        lines.append(m["content"].replace("\n", "  \n"))
+        lines.append("")
+    return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------- #
+#  Live fragments: voice console & timers
+# --------------------------------------------------------------------------- #
+RTC_CONFIG = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+
+
+@st.fragment(run_every=1.2)
+def voice_panel() -> None:
+    """Microphone console — polling fragment so utterances surface hands-free."""
+    if not st.session_state.set_mic:
+        st.info("🎙️ Microphone is disabled — enable it in the sidebar to talk to me.")
+        return
+
+    webrtc_ctx = webrtc_streamer(
+        key="dhi-mic",
+        mode=WebRtcMode.SENDONLY,
+        audio_processor_factory=AudioProcessor,
+        media_stream_constraints={
+            "video": False,
+            "audio": {"echoCancellation": True, "noiseSuppression": True,
+                      "autoGainControl": True},
+        },
+        rtc_configuration=RTC_CONFIG,
+        async_processing=True,
+    )
+    proc = webrtc_ctx.audio_processor
+    playing = bool(webrtc_ctx.state.playing)
+
+    if playing and proc:
+        rec_lang = speech.RECOGNITION_LANGUAGES.get(st.session_state.set_rec_lang, "en-US")
+        proc.configure(rec_lang, st.session_state.set_wake)
+        proc.ensure_recording()
+
+        if st.session_state.set_handsfree:
+            ui_styles.render_listening_orb(
+                True, "🎧 Hands-free — call “Dhi” and speak; I send when you pause")
+            results = proc.pop_results()
+            if results:
+                st.session_state.pending_voice = results
+                st.rerun(scope="app")
+        else:
+            ui_styles.render_listening_orb(True, "🎙️ Recording — press **Stop** to send")
+    else:
+        if proc is not None:
+            leftover = proc.finalize_now()   # flush push-to-talk / interrupted speech
+            if leftover:
+                st.session_state.pending_voice = [leftover]
+                st.rerun(scope="app")
+        hint = ("👋 Tap **Start** and just talk — say **“Dhi”** to get her attention"
+                if st.session_state.set_handsfree
+                else "👋 Tap **Start**, speak, then tap **Stop**")
+        ui_styles.render_listening_orb(False, hint)
+
+
+@st.fragment(run_every=2)
+def timers_fragment() -> None:
+    """Live countdown chips + alerts when timers finish."""
+    now = time.time()
+    active = [t for t in st.session_state.timers if t["end"] > now]
+    finished = [t for t in st.session_state.timers if t["end"] <= now]
+
+    if finished:
+        st.session_state.timers = active
+        for t in finished:
+            st.toast(f"⏰ {t['label']} finished!", icon="⏰")
+            st.audio(speech.alert_beep(), format="audio/wav")
+            label = t["label"] if t["label"] != "Timer" else "your"
+            spoken_label = f"your {t['label']}" if t["label"] != "Timer" else "your"
+            _say(f"Time's up! {spoken_label} timer has finished.",
+                 f"⏰ **Time's up!** The **{label}** timer has finished.", icon="⏰")
+        st.rerun(scope="app")
+    elif active:
+        for t in sorted(active, key=lambda x: x["end"]):
+            remaining = max(0, int(t["end"] - now))
+            mm, sec = divmod(remaining, 60)
+            hh, mm = divmod(mm, 60)
+            st.markdown(
+                f"<div class='timer-chip'>⏲️ <b>{t['label']}</b> — "
+                f"{hh:02d}:{mm:02d}:{sec:02d} remaining</div>",
+                unsafe_allow_html=True,
+            )
+
+
+# --------------------------------------------------------------------------- #
+#  Sidebar — settings, notes, stats, export
+# --------------------------------------------------------------------------- #
+with st.sidebar:
+    ui_styles.render_hero(st.session_state.user_name)
+
+    ui_styles.render_section("⚙️ Settings")
+    st.toggle("🔊 Speak replies aloud", key="set_voice")
+    st.toggle("🎧 Show replay player in bubbles", key="set_audio_player")
+    st.toggle("🪄 Hands-free mic (auto-send on pause)", key="set_handsfree",
+              help="Finalizes each spoken sentence automatically — no clicking needed.")
+    st.toggle("🎙️ Microphone enabled", key="set_mic")
+    st.toggle("🧹 Strip wake word (“Dhi”)", key="set_wake",
+              help="Also strips “hey dhi”, “ok dhi” — and her old codename “alexa”.")
+    st.selectbox("🧠 Understand language", list(speech.RECOGNITION_LANGUAGES),
+                 key="set_rec_lang")
+    st.selectbox("🗣️ Voice language", list(speech.TTS_LANGUAGES), key="set_tts_lang")
+
+    city_in = st.text_input(
+        "🌐 Default weather city",
+        value=st.session_state.default_city or "",
+        placeholder="Auto-detect (via IP)",
+    )
+    if city_in.strip():
+        st.session_state.default_city = city_in.strip()
+
+    ui_styles.render_section("📝 Quick notes")
+    notes = st.session_state.notes
+    if notes:
+        st.caption(f"{len(notes)} saved — say “show my notes” anytime")
+        for note in notes[-5:]:
+            st.markdown(f"<div class='note-chip'>📝 {note}</div>", unsafe_allow_html=True)
+    else:
+        st.caption("Say “take a note that buy milk” to save one.")
+
+    ui_styles.render_section("📊 This session")
+    uptime = int((dt.datetime.now() - st.session_state.session_started).total_seconds() // 60)
+    ui_styles.render_stats(
+        st.session_state.command_count, len(st.session_state.notes),
+        len(st.session_state.timers), uptime,
+    )
+
+    ui_styles.render_section("✨ What I can do")
+    ui_styles.render_capability_list()
+
+    st.markdown("")
+    col_a, col_b = st.columns(2)
+    if col_a.button("🗑️ Clear chat", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.autoplay_html = ""
         st.rerun()
+    if st.session_state.messages:
+        col_b.download_button(
+            "📥 Export chat", data=_transcript_markdown(),
+            file_name=f"dhi_chat_{dt.datetime.now():%Y%m%d_%H%M}.md",
+            mime="text/markdown", use_container_width=True,
+        )
 
-# Display area for command and response
-if st.session_state.last_command or st.session_state.assistant_response_display:
-    st.write("---")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write("**Your Last Command:**")
-        st.info(f"{st.session_state.last_command}")
-    with col2:
-        st.write("**Alexa's Response:**")
-        st.success(f"{st.session_state.assistant_response_display}")
-    st.write("---")
+# --------------------------------------------------------------------------- #
+#  Main layout
+# --------------------------------------------------------------------------- #
+ui_styles.render_hero(st.session_state.user_name)
 
-# Invisible audio player
-if st.session_state.audio_to_play:
-    st.components.v1.html(st.session_state.audio_to_play, height=0)
-    # Clear the audio after playing to prevent re-playing on every interaction
-    st.session_state.audio_to_play = ""
+# ---- quick actions -----------------------------------------------------------
+ui_styles.render_section("⚡ Quick actions")
+QUICK_ACTIONS = [
+    ("🕒 Time", "what time is it"),
+    ("📅 Date", "what's the date today"),
+    ("🌦️ Weather", "weather in London"),
+    ("📰 News", "show me the news"),
+    ("🧮 Math", "calculate 15 percent of 2400"),
+    ("😄 Joke", "tell me a joke"),
+    ("💡 Fact", "tell me a fun fact"),
+    ("💬 Quote", "give me an inspiring quote"),
+    ("🪙 Coin", "flip a coin"),
+    ("❓ Help", "what can you do"),
+]
+for row_start in range(0, len(QUICK_ACTIONS), 5):
+    cols = st.columns(5)
+    for col, (label, cmd) in zip(cols, QUICK_ACTIONS[row_start:row_start + 5]):
+        if col.button(label, key=f"qa_{label}", use_container_width=True):
+            handle_command(cmd, source="quick")
 
-# Set recording state when the stream starts
-if webrtc_ctx.state.playing and webrtc_ctx.audio_processor and not webrtc_ctx.audio_processor._is_recording:
-    webrtc_ctx.audio_processor.start()
+# ---- voice console -----------------------------------------------------------
+ui_styles.render_section("🎙️ Voice console")
+voice_panel()
+if st.session_state.timers:
+    timers_fragment()
+
+# ---- chat --------------------------------------------------------------------
+ui_styles.render_section("💬 Conversation")
+_drain_voice()
+
+if not st.session_state.messages:
+    ui_styles.render_empty_state()
+
+for msg in st.session_state.messages:
+    avatar = "🧑‍🚀" if msg["role"] == "user" else "🌸"
+    with st.chat_message(msg["role"], avatar=avatar):
+        if (msg["role"] == "assistant" and msg.get("audio")
+                and st.session_state.set_audio_player):
+            st.audio(msg["audio"], format="audio/mp3")
+        st.markdown(msg["content"])
+        st.caption(msg.get("ts", ""))
+
+prompt = st.chat_input(
+    "Type a message… e.g. “weather in Tokyo”, “calculate 15% of 2400”, “tell me a joke”"
+)
+if prompt:
+    handle_command(prompt, source="text")
+
+# ---- voice replies (auto-play once) -------------------------------------------
+if st.session_state.autoplay_html:
+    components.html(st.session_state.autoplay_html, height=0)
+    st.session_state.autoplay_html = ""
+
+ui_styles.render_footer()
+
+
 
