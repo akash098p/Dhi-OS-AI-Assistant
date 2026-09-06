@@ -7,3 +7,4 @@ gTTS>=2.5
 wikipedia>=1.4
 pyjokes>=0.8
 requests>=2.31
+translatepy>=1.5

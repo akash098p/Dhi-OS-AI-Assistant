@@ -60,12 +60,22 @@ MAX_MESSAGES = 80
 
 
 def _say(spoken: str, display: str, icon: str = "✨") -> None:
-    """Append an assistant message (with TTS attached when voice is on)."""
+    """Append an assistant message (with TTS attached when voice is on).
+
+    Both the spoken reply and the chat-bubble text are translated into the
+    selected voice language, so quick-action buttons (time, jokes, weather,
+    ...) as well as voice commands come back in that language. Markdown links
+    (e.g. weather/news results) are left untouched to keep them intact.
+    """
+    tts_lang = st.session_state.set_tts_lang
     audio = None
     if st.session_state.set_voice and spoken:
-        audio = speech.tts_bytes(spoken, st.session_state.set_tts_lang)
+        spoken_tts = speech.translate_text(spoken, tts_lang)
+        audio = speech.tts_bytes(spoken_tts, tts_lang)
         if audio:
             st.session_state.autoplay_html = speech.autoplay_html(audio)
+    if display and "](" not in display:
+        display = speech.translate_text(display, tts_lang)
     st.session_state.messages.append({
         "role": "assistant",
         "content": display,

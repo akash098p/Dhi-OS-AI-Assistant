@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import functools
 import io
 import re
 import wave
@@ -74,6 +75,50 @@ RECOGNITION_LANGUAGES: dict[str, str] = {
     "Arabic": "ar-SA",
     "Chinese (Mandarin)": "zh-CN",
 }
+
+
+def _tts_lang_code(language_label: str = "English (US)") -> str:
+    """gTTS language code for a display label, e.g. 'Hindi' -> 'hi'."""
+    return TTS_LANGUAGES.get(language_label, ("en", "com"))[0]
+
+
+_TRANSLATOR: object = None
+
+
+def _translator():
+    """One shared translatepy Translator (lazy; False if unavailable)."""
+    global _TRANSLATOR
+    if _TRANSLATOR is None:
+        try:
+            from translatepy import Translator
+            _TRANSLATOR = Translator()
+        except Exception:
+            _TRANSLATOR = False
+    return _TRANSLATOR
+
+
+@functools.lru_cache(maxsize=512)
+def translate_text(text: str, language_label: str = "English (US)") -> str:
+    """Best-effort translation of ``text`` into the selected voice language.
+
+    Returns the original text when the target is English or when translation is
+    unavailable, so Dhi always degrades gracefully to English replies instead
+    of breaking. Results are cached per (text, language) to avoid re-calling
+    the network on every message.
+    """
+    if not text:
+        return text
+    lang = _tts_lang_code(language_label)
+    if lang == "en":
+        return text
+    t = _translator()
+    if not t:
+        return text
+    try:
+        result = t.translate(text, lang)
+        return getattr(result, "text", None) or text
+    except Exception:
+        return text
 
 
 def tts_bytes(text: str, language_label: str = "English (US)", slow: bool = False) -> bytes | None:
