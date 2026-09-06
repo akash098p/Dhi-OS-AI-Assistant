@@ -176,6 +176,7 @@ brain intents (incl. answering when called), and the audio processor
 
 | Problem | Fix |
 |---|---|
+| `Fatal error in launcher: Unable to create process…` | The venv was moved/copied and its `.exe` launchers hold stale paths. **`Dhi.bat` handles this automatically** (it runs `python -m streamlit` instead). Manual fix: `venv\Scripts\python.exe -m pip install --force-reinstall --no-deps streamlit`, or delete `venv\` and re-run `pip install -r requirements.txt` |
 | Mic doesn't start | Use localhost or HTTPS; check browser camera/mic permission |
 | "Could not understand audio" | Speak louder/closer; VAD threshold lives in `modules/webrtc_audio.py` (`SPEECH_RMS_THRESHOLD`) |
 | Weather says key missing | Add `OPENWEATHER_API_KEY` to `.streamlit/secrets.toml` |
