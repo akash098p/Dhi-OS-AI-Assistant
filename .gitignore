@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Secrets — never commit real API keys
+.streamlit/secrets.toml
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

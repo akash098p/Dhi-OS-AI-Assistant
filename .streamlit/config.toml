@@ -1,0 +1,19 @@
+# EchoStream premium theme
+[theme]
+base = "dark"
+primaryColor = "#7C5CFF"
+backgroundColor = "#070A16"
+secondaryBackgroundColor = "#10152B"
+textColor = "#E8ECF8"
+
+[server]
+headless = false
+runOnSave = true
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = true

@@ -1,8 +1,9 @@
-streamlit
-gTTS
-wikipedia
-pyjokes
-requests
-SpeechRecognition
-streamlit-webrtc
-av
+streamlit>=1.49
+streamlit-webrtc>=0.76.0
+av>=14.0
+numpy>=1.26
+SpeechRecognition>=3.10
+gTTS>=2.5
+wikipedia>=1.4
+pyjokes>=0.8
+requests>=2.31
