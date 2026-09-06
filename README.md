@@ -1,121 +1,190 @@
-EchoStream 🗣️
+# 🎙️ EchoStream · **Dhi** — A Premium Voice-First AI Assistant
 
-An interactive voice assistant that runs entirely in your web browser. Built with Streamlit, EchoStream allows you to get weather updates, search Wikipedia, play music on YouTube, and hear a joke, all with simple voice commands.
+> **v2.1 · Premium Edition** — meet **Dhi**: call her by name and she answers.
+> Speak or type anything — weather, news, knowledge, math, music, timers, notes,
+> conversions and much more — wrapped in a glassmorphic, animated interface.
 
-<img width="1153" height="798" alt="Screenshot 2025-10-20 211119" src="https://github.com/user-attachments/assets/09ae222f-e0d5-4931-a140-0009cca21154" />
-<img width="1502" height="736" alt="Screenshot 2025-10-20 204150" src="https://github.com/user-attachments/assets/99cef27b-d143-4a10-82f9-b05ec2e5ecad" />
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.49%2B-FF4B4B?logo=streamlit&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
+---
 
+## ✨ What's new in v2.0
 
+| Area | Before | Now |
+|---|---|---|
+| **Architecture** | One 213-line script | Modular package (`brain`, `skills`, `speech`, `webrtc_audio`, `ui_styles`) |
+| **Input** | Voice only, press Start **and** Stop | Voice **hands-free** (auto-send on pause) + push-to-talk + **text chat** |
+| **Intents** | 5 rigid `elif` checks | **25+ intents** with regex NLU, priority ordering & graceful fallback |
+| **Skills** | Time, joke, weather, wiki, play | + Calculator, news, dictionary, currency, units, notes, timers, quotes, facts, coin, dice, search, site shortcuts, name memory, small talk |
+| **Audio pipeline** | Global buffer shared across all sessions (bug) | Per-session, thread-safe capture with **voice-activity detection** |
+| **Voice** | English only | **15 languages** for speech + recognition, replay player |
+| **UI** | Default Streamlit | Premium dark glassmorphism, animated listening orb, chat bubbles, quick actions, stats, transcript export |
 
-https://github.com/user-attachments/assets/a4700ff0-a08f-4b23-97dd-e2272ebbd5a6
+---
 
+## 🧠 Feature tour
 
+### Voice
+- 🌸 **Her name is Dhi** — say **“Dhi”**, **“hey Dhi”** or **“ok Dhi”** and she answers
+  *“Yes? I'm listening.”* 
+- 🪄 **Hands-free mode** — a lightweight VAD detects when you stop speaking and
+  sends the utterance automatically. No clicking.
+- 🎙️ **Push-to-talk** — classic Start → speak → Stop flow.
+- 🧹 **Wake-word stripping** — “Dhi, what time is it” just works.
+- 🗣️ **15 languages** — English variants, Hindi, Spanish, French, German, Japanese, and more.
+- 🔁 Optional replay player inside every reply bubble.
 
-https://github.com/user-attachments/assets/0d0dea31-6381-4ce8-a36e-d22f5bbbf827
+### Brain (25+ intents)
+| Skill | Try saying |
+|---|---|
+| 🕒 Time & date | "what time is it" · "what's the date today" |
+| 🌦️ Weather | "weather in Tokyo" · "how hot is it in Dubai" (auto IP-detect if no city) |
+| 📰 News | "show me the news" · "news about cricket" |
+| 📚 Knowledge | "who is Ada Lovelace" · "tell me about black holes" |
+| 🧮 Math | "calculate 25 times 8" · "what is 15% of 2400" · "square root of 144" |
+| 💱 Currency | "convert 100 usd to inr" (live rates) |
+| 📐 Units | "convert 10 km to miles" · "convert 100 f to c" |
+| 📖 Dictionary | "define serendipity" (dual API with automatic failover) |
+| 📝 Notes | "take a note that buy milk" · "show my notes" · "clear my notes" |
+| ⏲️ Timers | "set a timer for 5 minutes" → live countdown chip + beep + spoken alert |
+| 🎵 Music | "play Bohemian Rhapsody" · "play lo-fi beats on spotify" |
+| 🔗 Websites | "open youtube" · "open github" (19 shortcuts) |
+| 🔍 Search | "search quantum computing" → Google / DuckDuckGo / YouTube links |
+| 😄 Fun | "tell me a joke" · "flip a coin" · "roll a dice" · "give me a quote" · "tell me a fun fact" |
+| 👤 Personal | "my name is Alex" → remembered & used in greetings |
+| 🌸 Call her | "Dhi" · "hey Dhi" · "who is Dhi" → she answers & introduces herself |
+| 🤖 Small talk | "hello" · "how are you" · "who are you" · "what can you do" · "thanks" · "bye" |
 
+Unrecognized input never dead-ends: it returns handy web-search links.
 
+---
 
+### Interface
+- Animated gradient background + glass cards + custom fonts (Outfit / JetBrains Mono)
+- Pulsing **listening orb** that reacts to mic state
+- Chat-style conversation with timestamps, quick-action chips, session stats
+- One-click **chat export** (Markdown) and **clear chat**
 
+---
 
+## 🚀 Quick start
 
-✨ Key Features
+```bash
+# 1. Clone & enter
+git clone https://github.com/akash098p/Dhi-AI-assistant.git
+cd Dhi-AI-assistant
 
-🗣️ Voice Command Recognition: Hands-free control to interact with the assistant directly in your browser.
-
-🎵 YouTube Integration: Ask it to "play" any song, and it provides an instant search link to YouTube.
-
-☀️ Real-time Weather: Get current weather forecasts for any city in the world using your voice.
-
-🧠 Wikipedia Search: Ask "who is..." to get a concise, spoken summary from Wikipedia.
-
-😂 Joke Teller: Need a laugh? Just ask for a joke, and EchoStream will tell you one.
-
-🌐 Modern & Responsive UI: A clean, attractive, and user-friendly interface powered by Streamlit.
-
-🎤 Browser-Based Audio: Captures your microphone input directly in the browser using streamlit-webrtc, ensuring privacy and ease of use.
-
-🛠️ Tech Stack
-
-EchoStream uses a powerful combination of Python libraries to bring a voice-first experience to the web:
-
-Frontend: Streamlit
-
-Audio Streaming: streamlit-webrtc
-
-Speech Recognition: SpeechRecognition
-
-Text-to-Speech: gTTS (Google Text-to-Speech)
-
-APIs: OpenWeatherMap, Wikipedia
-
-Deployment: Streamlit Community Cloud
-
-🚀 Getting Started
-
-Follow these instructions to get a local copy up and running for development and testing purposes.
-
-Prerequisites
-
-Python 3.9 or higher
-
-pip package manager
-
-An API key from OpenWeatherMap
-
-Installation
-
-Clone the repository:
-
-git clone [https://github.com/your-username/EchoStream.git](https://github.com/your-username/EchoStream.git)
-cd EchoStream
-
-
-Create and activate a virtual environment (recommended):
-
+# 2. Create a virtual environment (Python 3.10+)
 python -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+venv\Scripts\activate            # Windows
+source venv/bin/activate         # Linux / macOS
 
-
-Install the required packages:
-
+# 3. Install dependencies
 pip install -r requirements.txt
 
+# 4. Add your (free) OpenWeatherMap key
+copy .streamlit\secrets.example.toml .streamlit\secrets.toml
+#    → edit secrets.toml and paste your key from https://openweathermap.org/api
 
-Set up your API Key:
-
-In the root of your project folder, create a new directory named .streamlit.
-
-Inside .streamlit, create a file named secrets.toml.
-
-Add your API key to this file:
-
-OPENWEATHER_API_KEY = "YOUR_SECRET_API_KEY_HERE"
-
-
-Run the Streamlit application:
-
+# 5. Run
 streamlit run app.py
+```
 
+**⚡ Instant launch (Windows):** after setup, just **double-click `Dhi.bat`** —
+it starts the server and opens your browser automatically.
 
-Your browser will automatically open with the application running!
+Open the browser, click **Start** on the mic (allow permission) and just talk —
+or type in the chat box.
 
-🤝 Contributing
+> ⚠️ Microphone access requires **localhost or HTTPS** (browser policy).
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
+---
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+## 🗂️ Project structure
 
-Fork the Project
+```
+EchoStream/
+├── Dhi.bat                    # ⚡ double-click launcher (Windows)
+├── app.py                     # UI layer: hero, sidebar, fragments, chat
+├── modules/
+│   ├── brain.py               # Intent engine: command → Reply (25+ intents)
+│   ├── skills.py              # Skill library: weather, news, math, currency…
+│   ├── speech.py              # TTS engine, wake word "Dhi", alert beeps
+│   ├── webrtc_audio.py        # Thread-safe mic capture + VAD + STT
+│   └── ui_styles.py           # Premium CSS + reusable HTML components
+├── tests/
+│   └── smoke_test.py          # 56 offline tests for brain/skills/audio
+├── .streamlit/
+│   ├── config.toml            # Premium dark theme
+│   ├── secrets.toml           # Your API keys (never commit!)
+│   └── secrets.example.toml   # Template
+└── requirements.txt
+```
 
-Create your Feature Branch (git checkout -b feature/AmazingFeature)
+### How it works
 
-Commit your Changes (git commit -m 'Add some AmazingFeature')
+```
+ Browser mic ──WebRTC──▶ AudioProcessor (per-session, thread-safe)
+                            │  RMS voice-activity detection
+                            ├─ hands-free: silence 1.6 s → finalize utterance
+                            └─ push-to-talk: Stop → finalize
+                            ▼
+                    SpeechRecognition (Google STT, 15 locales)
+                            ▼
+                    brain.respond(command, ctx)  ──regex NLU──▶ 25+ intents
+                            ▼
+                    skills.<handler>()  →  Reply{spoken, display, action}
+                            ▼
+              Chat bubble (markdown) + gTTS voice reply + side-effects
+              (timers, notes, name memory) + autoplay audio
+```
 
-Push to the Branch (git push origin feature/AmazingFeature)
+---
 
-Open a Pull Request
+## 🔑 API keys
 
-📄 License
+| Service | Used for | Required? |
+|---|---|---|
+| [OpenWeatherMap](https://openweathermap.org/api) | Weather skill | Recommended (free) |
+| Google News RSS | News skill | No key needed |
+| dictionaryapi.dev + Wiktionary | Dictionary | No key needed |
+| open.er-api.com | Currency | No key needed |
+| ZenQuotes | Quotes | No key needed |
+| Google Speech / Translate TTS | STT & voice replies | No key needed |
 
-Distributed under the MIT License. See LICENSE.md for more information.
+Put keys in `.streamlit/secrets.toml` (see `secrets.example.toml`). The file is
+git-ignored — never commit real keys.
+
+---
+
+## 🧪 Tests
+
+```bash
+python tests/smoke_test.py
+```
+
+56 assertions cover the wake word ("Dhi" & variants), the calculator (incl.
+safe-eval code-injection blocking), durations, unit conversion, all offline
+brain intents (incl. answering when called), and the audio processor
+(synthetic WebRTC frames).
+
+---
+
+## 🛠️ Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Mic doesn't start | Use localhost or HTTPS; check browser camera/mic permission |
+| "Could not understand audio" | Speak louder/closer; VAD threshold lives in `modules/webrtc_audio.py` (`SPEECH_RMS_THRESHOLD`) |
+| Weather says key missing | Add `OPENWEATHER_API_KEY` to `.streamlit/secrets.toml` |
+| Audio doesn't autoplay | Browsers block autoplay until first interaction — click anywhere once |
+| Speech service error | Google STT needs internet; check connectivity |
+
+---
+
+## 📜 License
+
+MIT — free to use, learn from and build upon.
+
