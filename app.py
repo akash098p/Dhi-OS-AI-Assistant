@@ -121,6 +121,16 @@ def _drain_voice() -> None:
                 "ts": dt.datetime.now().strftime("%H:%M"),
             })
             continue
+        if not text.strip():
+            # STT returned speech but no words — surface feedback so Dhi
+            # doesn't look "broken" when she silently hears nothing.
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "🤔 I didn't catch that — check your mic/internet or try speaking a bit louder.",
+                "icon": "🤔", "audio": None,
+                "ts": dt.datetime.now().strftime("%H:%M"),
+            })
+            continue
         handle_command(text, source="voice")   # reruns internally
     st.session_state.pending_voice = []
 
@@ -141,7 +151,7 @@ def _transcript_markdown() -> str:
 RTC_CONFIG = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
 
 
-@st.fragment(run_every=1.2)
+@st.fragment(run_every=0.5)
 def voice_panel() -> None:
     """Microphone console — polling fragment so utterances surface hands-free."""
     if not st.session_state.set_mic:

@@ -25,9 +25,9 @@ from streamlit_webrtc import AudioProcessorBase
 
 from .speech import strip_wake_word  # noqa: F401  (wake word + re-exported)
 
-SPEECH_RMS_THRESHOLD = 600.0   # raw RMS above this counts as speech
-SILENCE_TO_FINALIZE = 1.6      # seconds of quiet after speech -> send utterance
-MIN_UTTERANCE_SECONDS = 0.8    # ignore blips / button noise
+SPEECH_RMS_THRESHOLD = 400.0   # raw RMS above this counts as speech (lower => catches quieter voices)
+SILENCE_TO_FINALIZE = 1.0      # seconds of quiet after speech -> finalize utterance sooner
+MIN_UTTERANCE_SECONDS = 0.6    # ignore blips / button noise
 MAX_RECORD_SECONDS = 75.0      # safety cap for a single utterance
 
 
