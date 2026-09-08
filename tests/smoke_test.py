@@ -34,6 +34,27 @@ beep = speech.alert_beep()
 check("alert_beep returns WAV bytes", isinstance(beep, bytes) and beep[:4] == b"RIFF")
 check("autoplay_html empty-safe", speech.autoplay_html(None) == "")
 
+
+class _FakeTranslate:
+    """Mimics translatepy 2.x: the translation lives on ``.result``."""
+
+    class _Res:
+        result = "नमस्ते"
+
+    def translate(self, text: str, lang: str):  # noqa: A002
+        return self._Res()
+
+
+_saved = speech._TRANSLATOR
+speech._TRANSLATOR = _FakeTranslate()
+try:
+    tr = speech.translate_text("hello", "Hindi")
+    check("translate_text reads .result", tr == "नमस्ते", repr(tr))
+    check("English short-circuits (no translate)",
+          speech.translate_text("Hi there", "English (US)") == "Hi there")
+finally:
+    speech._TRANSLATOR = _saved
+
 print("- calculator -")
 r = skills.try_calculate("what is 25 times 4")
 check("word math (25 times 4 = 100)", r is not None and "100" in r[1], str(r))
@@ -123,6 +144,26 @@ r = brain.respond("play bohemian rhapsody", ctx)
 check("play music", "youtube.com" in r.display)
 r = brain.respond("xyzzy plugh", ctx)
 check("fallback gives search links", "google.com/search" in r.display)
+
+print("- dhi protocol intents -")
+r = brain.respond("good morning sir", {})
+check("protocol greeting", r.icon == "🟢" and "Good " in r.spoken
+      and "sir" in r.spoken and "operational" in r.spoken)
+r = brain.respond("good evening", {})
+check("protocol plain greeting", r.icon == "🟢" and "operational" in r.spoken.lower())
+r = brain.respond("what is the system status",
+                  {"stats": {"uptime": 3661, "commands": 3, "notes": 1, "timers": 0,
+                             "mic": "STANDBY", "lang": "English (US)"}})
+check("system status report", r.icon == "🛰️" and "1h 01m 01s" in r.display
+      and "| 3 |" in r.display)
+r = brain.respond("run diagnostics", {})
+check("diagnostics alias", r.icon == "🛰️" and "nominal" in r.display.lower())
+r = brain.respond("power down", {})
+check("power down", r.action == "goodbye" and "standby" in r.spoken.lower())
+r = brain.respond("wake up", {})
+check("wake up", r.icon == "🟢" and "online" in r.display.lower())
+check("format_uptime hms", skills.format_uptime(3725) == "1h 02m 05s")
+check("format_uptime zero", skills.format_uptime(0) == "0s")
 
 print("- audio processor (synthetic frames) -")
 
