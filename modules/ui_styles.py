@@ -49,8 +49,22 @@ body::after {
    Only the hamburger menu (#MainMenu) and footer are removed.               */
 #MainMenu, footer { display: none !important; }
 [data-testid="stHeader"] { background: transparent !important; border: none !important; }
+/* Sidebar collapse / reopen button — always visible, clearly styled */
 [data-testid="collapsedControl"],
-[data-testid="stSidebarCollapseButton"] { color: var(--dhi-tx-dim) !important; }
+[data-testid="stSidebarCollapseButton"] {
+    color: var(--dhi-tx-dim) !important;
+    background: var(--dhi-panel) !important;
+    border: 1px solid var(--dhi-panel-bd) !important;
+    border-radius: 8px !important;
+    padding: 4px 6px !important;
+    cursor: pointer !important;
+}
+[data-testid="collapsedControl"]:hover,
+[data-testid="stSidebarCollapseButton"]:hover {
+    color: var(--dhi-tx) !important;
+    background: var(--dhi-glass) !important;
+    border-color: var(--dhi-accent2) !important;
+}
 
 a { color: var(--dhi-link); }
 h1, h2, h3, h4 { font-weight: 700; letter-spacing: .3px; color: var(--dhi-tx); }
