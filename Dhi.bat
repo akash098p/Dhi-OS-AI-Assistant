@@ -1,5 +1,5 @@
 @echo off
-title DHI OS v3.0 - JARVIS Protocol
+title DHI OS v3.0
 cd /d "%~dp0"
 
 rem ---------------------------------------------------------------------
@@ -47,7 +47,7 @@ if errorlevel 1 (
 
 echo.
 echo   ==============================================
-echo      DHI OS v3.0  -  JARVIS Protocol
+echo      DHI OS v3.0  -  Premium Edition
 echo      Your AI Voice Assistant
 echo      URL : http://localhost:%PORT%
 echo      Your browser will open automatically.
