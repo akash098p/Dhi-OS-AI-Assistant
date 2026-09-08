@@ -128,7 +128,7 @@ DHI-OS/
 │   ├── webrtc_audio.py        # Thread-safe mic capture + VAD + STT
 │   └── ui_styles.py           # DHI HUD theme, boot sequence, components
 ├── tests/
-│   └── smoke_test.py          # 65 offline tests for brain/skills/audio/protocol
+│   └── smoke_test.py          # 67 offline tests for brain/skills/audio/protocol
 ├── .streamlit/
 │   ├── config.toml            # Premium dark theme
 │   ├── secrets.toml           # Your API keys (never commit!)
@@ -178,10 +178,11 @@ git-ignored — never commit real keys.
 python tests/smoke_test.py
 ```
 
-65 assertions cover the wake word ("Dhi" & variants), the calculator (incl.
+67 assertions cover the wake word ("Dhi" & variants), the calculator (incl.
 safe-eval code-injection blocking), durations, unit conversion, all offline
 brain intents (incl. answering when called), the Dhi protocol (status report,
-protocol greetings, power down / wake up), and the audio processor
+protocol greetings, power down / wake up), multi-language translation wiring,
+and the audio processor
 (synthetic WebRTC frames).
 
 ---
