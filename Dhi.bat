@@ -1,5 +1,5 @@
 @echo off
-title Dhi - AI Voice Assistant
+title DHI OS v3.0 - JARVIS Protocol
 cd /d "%~dp0"
 
 rem ---------------------------------------------------------------------
@@ -47,7 +47,8 @@ if errorlevel 1 (
 
 echo.
 echo   ==============================================
-echo      DHI  -  Your AI Voice Assistant
+echo      DHI OS v3.0  -  JARVIS Protocol
+echo      Your AI Voice Assistant
 echo      URL : http://localhost:%PORT%
 echo      Your browser will open automatically.
 echo      Keep this window open while using Dhi.
