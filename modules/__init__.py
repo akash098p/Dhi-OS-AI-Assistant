@@ -1,4 +1,4 @@
-"""Dhi — a premium voice-first AI assistant built with Streamlit.
+"""Dhi — a premium, voice-first AI assistant (DHI OS · JARVIS Protocol).
 
 Sub-modules
 -----------
@@ -6,7 +6,7 @@ Sub-modules
 - webrtc_audio  : microphone capture + speech-to-text pipeline
 - skills        : the assistant's skill library (weather, news, math, ...)
 - brain         : natural-language intent engine routing to skills
-- ui_styles     : premium theming, animations and custom UI components
+- ui_styles     : JARVIS-style HUD theming, boot sequence and UI components
 """
 
-__version__ = "2.1.0"
+__version__ = "3.0.0"
