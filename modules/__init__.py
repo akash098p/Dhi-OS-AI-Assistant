@@ -1,4 +1,4 @@
-"""Dhi — a premium, voice-first AI assistant (DHI OS · JARVIS Protocol).
+"""Dhi — a premium, voice-first AI assistant (DHI OS).
 
 Sub-modules
 -----------
@@ -6,7 +6,7 @@ Sub-modules
 - webrtc_audio  : microphone capture + speech-to-text pipeline
 - skills        : the assistant's skill library (weather, news, math, ...)
 - brain         : natural-language intent engine routing to skills
-- ui_styles     : JARVIS-style HUD theming, boot sequence and UI components
+- ui_styles     : DHI HUD theming, boot sequence and UI components
 """
 
 __version__ = "3.0.0"
