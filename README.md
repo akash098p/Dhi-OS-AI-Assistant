@@ -73,11 +73,18 @@ Unrecognized input never dead-ends: it returns handy web-search links.
 ---
 
 ### Interface
+- **Dual luxe themes** — 🌙 *Dark Aurora* & ☀️ *Light Pearl*: layered gradient
+  backdrops with slow-drifting aurora orbs, glass panels and CRT-fine scanlines
+  (switch anytime from the sidebar — **🎨 Appearance**)
 - **DHI OS boot sequence** — premium animated core splash on every session, auto-fades
-- Animated gradient background + subtle CRT scanlines + custom fonts (Michroma / Outfit / JetBrains Mono)
-- **Arc-reactor hero** with rotating rings, HUD readouts and angular command buttons
+- **Glass command bar** — identity, live status chips (mic, commands, uptime,
+  session id) and a HUD clock with shimmer underline
+- **Two-pane workspace** — voice console + skills on the left, conversation on
+  the right; quick-launch chip row up top
+- Custom fonts (Michroma / Outfit / JetBrains Mono), angular command buttons,
+  animated listening orb with live equalizer
 - Sidebar **Core Diagnostics** console — session id, uptime, commands, mic, voice language, core-load bar
-- Chat-style conversation with timestamps, quick-action chips, session stats
+- Chat-style conversation with timestamps and theme-aware glass bubbles
 - One-click **chat export** (Markdown) and **clear chat**
 
 ---
