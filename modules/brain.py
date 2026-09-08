@@ -34,6 +34,12 @@ _GREETING_RE = re.compile(
 _ATTENTION_RE = re.compile(
     r"^(?:(?:ok|okay|hey|hi|hello)\s+)?(?:dhi|dhee|dee)$", re.IGNORECASE
 )
+# JARVIS protocol: "good morning", "good evening sir", "good night" ...
+_JARVIS_GREETING_RE = re.compile(
+    r"^(?:good\s+)?(?:morning|afternoon|evening|day|night)"
+    r"(?:\s*(?:sir|ma'?am|madam|boss|captain|commander|agent|maestro))?$",
+    re.IGNORECASE,
+)
 
 
 def _greeting(ctx: dict) -> Reply:
@@ -46,6 +52,47 @@ def _greeting(ctx: dict) -> Reply:
         f"👋 Good **{part}**{who}! I'm **Dhi** — tap the mic or type below.",
         icon="👋",
     )
+
+
+def _jarvis_greeting(ctx: dict) -> Reply:
+    """JARVIS-protocol greeting: 'good morning sir' -> systems operational."""
+    hour = dt.datetime.now().hour
+    period = "morning" if 5 <= hour < 12 else "afternoon" if 12 <= hour < 17 else "evening"
+    who = ctx.get("user_name") or "sir"
+    return Reply(
+        f"Good {period}, {who}. All systems are operational, and I'm at your service.",
+        f"🟢 **Good {period}, {who}.** All systems are operational, and I'm at your service.",
+        icon="🟢",
+    )
+
+
+def _status_reply(ctx: dict) -> Reply:
+    """JARVIS-style system status report powered by live session stats."""
+    s = ctx.get("stats") or {}
+    commands = int(s.get("commands", 0))
+    notes = int(s.get("notes", 0))
+    timers = int(s.get("timers", 0))
+    uptime = int(s.get("uptime", 0))
+    mic = s.get("mic", "STANDBY")
+    lang = (s.get("lang") or "English (US)").split("(")[0].strip()
+    up_str = skills.format_uptime(uptime)
+    level = min(100, 30 + commands * 3 + (0 if mic == "STANDBY" else 9))
+    spoken = (f"All systems nominal. Uptime {up_str}. "
+              f"{commands} commands executed, {notes} notes stored, {timers} timers active. "
+              f"Microphone on {mic}, voice language {lang}.")
+    display = (
+        "🛰️ **DHI OS · System status**\n\n"
+        f"| Metric | Value |\n|---|---|\n"
+        f"| ⏱ Uptime | {up_str} |\n"
+        f"| ⌨ Commands | {commands} |\n"
+        f"| 📝 Notes | {notes} |\n"
+        f"| ⏲ Timers | {timers} |\n"
+        f"| 🎙 Mic | {mic} |\n"
+        f"| 🗣 Voice | {lang} |\n"
+        f"| 🧠 Core load | {level}% |\n\n"
+        "> ◆ _All systems are nominal._"
+    )
+    return Reply(spoken, display, icon="🛰️")
 
 
 def _identity_reply(ctx: dict) -> Reply:
@@ -136,6 +183,8 @@ def respond(command: str, ctx: dict) -> Reply:
                      "🤔 I didn't catch that — say it again, or type below.", icon="👂")
 
     # -- small talk & meta ---------------------------------------------------
+    if _JARVIS_GREETING_RE.match(lowered):          # "good morning sir" etc.
+        return _jarvis_greeting(ctx)
     if _GREETING_RE.match(lowered):
         return _greeting(ctx)
     if _ATTENTION_RE.match(lowered):          # called by name: "Dhi!"
@@ -155,11 +204,26 @@ def respond(command: str, ctx: dict) -> Reply:
                  lowered):
         return capabilities_reply()
     if re.search(r"\bhow are you\b|\bhow'?s it going\b|\bwhat'?s up\b", lowered):
-        return Reply("I'm running at full speed — all systems green!",
-                     "⚡ **I'm doing great** — all systems green and ready for your next command!",
+        return Reply("Running at full capacity. All systems green, power reserves optimal.",
+                     "⚡ **All systems green.** Core stable, response matrix optimized — ready for your command.",
                      icon="⚡")
+    if re.search(r"\b(?:system status|status report|system check|run\s+(?:a\s+)?diagnostic|diagnostics?|all systems)\b",
+                 lowered):
+        return _status_reply(ctx)
     if re.search(r"\bthanks?\b|\bthank you\b|\bappreciate\b", lowered):
         return Reply("You're welcome!", "💙 You're very welcome!", icon="💙")
+    # -- JARVIS standby protocol -----------------------------------------------
+    if re.search(r"\b(?:shut\s*down|power\s*(?:down|off)|go\s+to\s+sleep|sleep\s+mode|stand\s*by|deactivate|deep\s+sleep)\b",
+                 lowered):
+        return Reply("Powering down. I'll remain on standby if you need me.",
+                     "🔻 **Powering down** — standing by on low power. Say **“wake up”** to bring me back online.",
+                     icon="🔻", action="goodbye")
+    if re.search(r"\b(?:wake\s*up|start\s*up|power\s*on|power\s*up|boot\s*(?:up)?|initiate|come\s+back\s+online|revive)\b",
+                 lowered):
+        return Reply("All systems online. Dhi OS reporting for duty.",
+                     "🟢 **All systems online** — Dhi OS reporting for duty. What's our next move?",
+                     icon="🟢")
+
     if re.search(r"\b(?:bye|goodbye|see you|good night)\b|\bexit\b|\bshut down\b"
                  r"|\b(?:stop|end) (?:listening|the app)\b", lowered):
         return Reply("Goodbye! Talk to you soon.",
