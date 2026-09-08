@@ -1,8 +1,9 @@
-# 🎙️ EchoStream · **Dhi** — A Premium Voice-First AI Assistant
+# ◈ DHI OS · **JARVIS Protocol** — A Premium Voice-First AI Assistant
 
-> **v2.1 · Premium Edition** — meet **Dhi**: call her by name and she answers.
+> **v3.0 · JARVIS Protocol Edition** — meet **Dhi**: call her by name and she answers.
 > Speak or type anything — weather, news, knowledge, math, music, timers, notes,
-> conversions and much more — wrapped in a glassmorphic, animated interface.
+> conversions and much more — wrapped in a JARVIS-class HUD with an animated
+> boot sequence, arc-reactor core and live system diagnostics.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.49%2B-FF4B4B?logo=streamlit&logoColor=white)
@@ -10,17 +11,17 @@
 
 ---
 
-## ✨ What's new in v2.0
+## ✨ What's new in v3.0 (JARVIS Protocol)
 
 | Area | Before | Now |
 |---|---|---|
-| **Architecture** | One 213-line script | Modular package (`brain`, `skills`, `speech`, `webrtc_audio`, `ui_styles`) |
-| **Input** | Voice only, press Start **and** Stop | Voice **hands-free** (auto-send on pause) + push-to-talk + **text chat** |
-| **Intents** | 5 rigid `elif` checks | **25+ intents** with regex NLU, priority ordering & graceful fallback |
-| **Skills** | Time, joke, weather, wiki, play | + Calculator, news, dictionary, currency, units, notes, timers, quotes, facts, coin, dice, search, site shortcuts, name memory, small talk |
-| **Audio pipeline** | Global buffer shared across all sessions (bug) | Per-session, thread-safe capture with **voice-activity detection** |
-| **Voice** | English only | **15 languages** for speech + recognition, replay player |
-| **UI** | Default Streamlit | Premium dark glassmorphism, animated listening orb, chat bubbles, quick actions, stats, transcript export |
+| **Boot** | Static hero screen | Full-screen **DHI OS boot sequence** — reactor core, staggered system checks (`neural core online → all systems nominal`) and animated progress bar, then auto-fade |
+| **Identity** | Simple greeting | **JARVIS-class persona** — "Good morning, sir. All systems operational", "Powering down… standing by", "Wake up" to revive |
+| **Diagnostics** | Basic stats row | Live **Core Diagnostics HUD** — session id, uptime, command count, mic state, voice language, core-load bar, last command |
+| **Input feel** | Instant replies | **ANALYZING → PROCESSING → COMPUTING → EXECUTING** animation before typed replies |
+| **Voice console** | Static orb | Arc-reactor orb with **animated equalizer** while listening |
+| **Typography** | Single font | **Michroma** (HUD) + **JetBrains Mono** (readouts) + Outfit (body) |
+| **Commands** | 25 intents | + **system status** report, protocol greetings, power down / wake up (`🛰️ Status` quick action) |
 
 ---
 
@@ -35,6 +36,16 @@
 - 🧹 **Wake-word stripping** — “Dhi, what time is it” just works.
 - 🗣️ **15 languages** — English variants, Hindi, Spanish, French, German, Japanese, and more.
 - 🔁 Optional replay player inside every reply bubble.
+
+### JARVIS protocol
+- 🛰️ **System status** — “system status” · “run diagnostics” → live report of
+  uptime, commands, notes, timers, mic state, voice language and core load.
+- 🟢 **Protocol greetings** — “good morning sir” · “good evening” → *“All systems
+  are operational, and I'm at your service.”*
+- 🔻 **Power down / revive** — “power down” · “go to sleep” → *standing by on low
+  power*; “wake up” → *all systems online*.
+- 🖥️ **Boot sequence** — every session opens with a JARVIS-style core boot,
+  then melts away into the workspace.
 
 ### Brain (25+ intents)
 | Skill | Try saying |
@@ -62,8 +73,10 @@ Unrecognized input never dead-ends: it returns handy web-search links.
 ---
 
 ### Interface
-- Animated gradient background + glass cards + custom fonts (Outfit / JetBrains Mono)
-- Pulsing **listening orb** that reacts to mic state
+- **DHI OS boot sequence** — JARVIS-style core splash on every session, auto-fades
+- Animated gradient background + subtle CRT scanlines + custom fonts (Michroma / Outfit / JetBrains Mono)
+- **Arc-reactor hero** with rotating rings, HUD readouts and angular command buttons
+- Sidebar **Core Diagnostics** console — session id, uptime, commands, mic, voice language, core-load bar
 - Chat-style conversation with timestamps, quick-action chips, session stats
 - One-click **chat export** (Markdown) and **clear chat**
 
@@ -105,7 +118,7 @@ or type in the chat box.
 ## 🗂️ Project structure
 
 ```
-EchoStream/
+DHI-OS/
 ├── Dhi.bat                    # ⚡ double-click launcher (Windows)
 ├── app.py                     # UI layer: hero, sidebar, fragments, chat
 ├── modules/
@@ -113,9 +126,9 @@ EchoStream/
 │   ├── skills.py              # Skill library: weather, news, math, currency…
 │   ├── speech.py              # TTS engine, wake word "Dhi", alert beeps
 │   ├── webrtc_audio.py        # Thread-safe mic capture + VAD + STT
-│   └── ui_styles.py           # Premium CSS + reusable HTML components
+│   └── ui_styles.py           # JARVIS HUD theme, boot sequence, components
 ├── tests/
-│   └── smoke_test.py          # 56 offline tests for brain/skills/audio
+│   └── smoke_test.py          # 65 offline tests for brain/skills/audio/JARVIS
 ├── .streamlit/
 │   ├── config.toml            # Premium dark theme
 │   ├── secrets.toml           # Your API keys (never commit!)
@@ -165,9 +178,10 @@ git-ignored — never commit real keys.
 python tests/smoke_test.py
 ```
 
-56 assertions cover the wake word ("Dhi" & variants), the calculator (incl.
+65 assertions cover the wake word ("Dhi" & variants), the calculator (incl.
 safe-eval code-injection blocking), durations, unit conversion, all offline
-brain intents (incl. answering when called), and the audio processor
+brain intents (incl. answering when called), the JARVIS protocol (status report,
+protocol greetings, power down / wake up), and the audio processor
 (synthetic WebRTC frames).
 
 ---
