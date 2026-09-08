@@ -27,7 +27,6 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="expanded",
 )
-ui_styles.inject_css()
 
 
 def _init_state() -> None:
@@ -55,9 +54,11 @@ def _init_state() -> None:
     ss.setdefault("set_wake", True)           # strip leading wake word ("alexa")
     ss.setdefault("set_rec_lang", "English (US)")
     ss.setdefault("set_tts_lang", "English (US)")
+    ss.setdefault("set_theme", "dark")        # "dark" | "light"
 
 
 _init_state()
+ui_styles.inject_css(st.session_state.set_theme)
 
 if not st.session_state.booted:
     ui_styles.render_boot_overlay()
@@ -271,6 +272,12 @@ def timers_fragment() -> None:
 with st.sidebar:
     ui_styles.render_mini_hero(st.session_state.user_name)
 
+    ui_styles.render_section("🎨 Appearance")
+    st.radio(
+        "Theme", ui_styles.theme_names(), key="set_theme", horizontal=True,
+        label_visibility="collapsed", format_func=ui_styles.theme_label,
+    )
+
     ui_styles.render_section("🛰️ Core diagnostics")
     uptime_sec = int((dt.datetime.now() - st.session_state.session_started).total_seconds())
     ui_styles.render_diagnostics(
@@ -336,16 +343,19 @@ with st.sidebar:
         )
 
 # --------------------------------------------------------------------------- #
-#  Main layout
+#  Main layout — command bar + two-pane workspace
 # --------------------------------------------------------------------------- #
-ui_styles.render_hero(
-    st.session_state.user_name,
-    uptime=int((dt.datetime.now() - st.session_state.session_started).total_seconds()),
+uptime_sec = int((dt.datetime.now() - st.session_state.session_started).total_seconds())
+ui_styles.render_topbar(
+    uptime_sec=uptime_sec,
+    session=st.session_state.session_id,
+    user_name=st.session_state.user_name,
+    mic_state=st.session_state.mic_state,
     commands=st.session_state.command_count,
 )
 
-# ---- quick actions -----------------------------------------------------------
-ui_styles.render_section("⚡ Quick actions")
+# ---- quick launch -------------------------------------------------------------
+ui_styles.render_section("⚡ Quick launch")
 QUICK_ACTIONS = [
     ("🕒 Time", "what time is it"),
     ("📅 Date", "what's the date today"),
@@ -366,43 +376,48 @@ for row_start in range(0, len(QUICK_ACTIONS), 6):
         if col.button(label, key=f"qa_{label}", use_container_width=True):
             handle_command(cmd, source="quick")
 
-# ---- voice console -----------------------------------------------------------
-ui_styles.render_section("🎙️ Voice console")
-voice_panel()
-if st.session_state.timers:
-    timers_fragment()
+# ---- two-pane workspace -------------------------------------------------------
+col_left, col_right = st.columns([5, 7], gap="large")
 
-# ---- chat --------------------------------------------------------------------
-ui_styles.render_section("💬 Conversation")
-_drain_voice()
+with col_left:
+    ui_styles.render_section("🎙️ Voice console")
+    voice_panel()
+    if st.session_state.timers:
+        timers_fragment()
+    ui_styles.render_section("✨ What I can do")
+    ui_styles.render_capability_list()
 
-if not st.session_state.messages:
-    ui_styles.render_empty_state()
+with col_right:
+    ui_styles.render_section("💬 Conversation")
+    _drain_voice()
 
-for msg in st.session_state.messages:
-    avatar = "🧑‍🚀" if msg["role"] == "user" else "🌸"
-    with st.chat_message(msg["role"], avatar=avatar):
-        if (msg["role"] == "assistant" and msg.get("audio")
-                and st.session_state.set_audio_player):
-            st.audio(msg["audio"], format="audio/mp3")
-        st.markdown(msg["content"])
-        ts = msg.get("ts", "")
-        st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
+    if not st.session_state.messages:
+        ui_styles.render_empty_state()
 
-prompt = st.chat_input(
-    "Send a command — “system status”, “weather in Tokyo”, “play some music”…"
-)
-if prompt:
-    now_str = dt.datetime.now().strftime("%H:%M")
-    with st.chat_message("user", avatar="🧑‍🚀"):
-        st.markdown(prompt)
-        st.caption(now_str)
-    ph = st.empty()
-    for label in ("ANALYZING", "PROCESSING", "COMPUTING", "EXECUTING"):
-        ph.markdown(ui_styles.render_processing(label), unsafe_allow_html=True)
-        time.sleep(0.25)
-    ph.empty()
-    handle_command(prompt, source="text")
+    for msg in st.session_state.messages:
+        avatar = "🧑‍🚀" if msg["role"] == "user" else "🌸"
+        with st.chat_message(msg["role"], avatar=avatar):
+            if (msg["role"] == "assistant" and msg.get("audio")
+                    and st.session_state.set_audio_player):
+                st.audio(msg["audio"], format="audio/mp3")
+            st.markdown(msg["content"])
+            ts = msg.get("ts", "")
+            st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
+
+    prompt = st.chat_input(
+        "Send a command — “system status”, “weather in Tokyo”, “play some music”…"
+    )
+    if prompt:
+        now_str = dt.datetime.now().strftime("%H:%M")
+        with st.chat_message("user", avatar="🧑‍🚀"):
+            st.markdown(prompt)
+            st.caption(now_str)
+        ph = st.empty()
+        for label in ("ANALYZING", "PROCESSING", "COMPUTING", "EXECUTING"):
+            ph.markdown(ui_styles.render_processing(label), unsafe_allow_html=True)
+            time.sleep(0.25)
+        ph.empty()
+        handle_command(prompt, source="text")
 
 # ---- voice replies (auto-play once) -------------------------------------------
 if st.session_state.autoplay_html:
