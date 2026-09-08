@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime as dt
 import time
+import uuid
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -21,7 +22,7 @@ from modules.webrtc_audio import AudioProcessor
 #  Page setup & session state
 # --------------------------------------------------------------------------- #
 st.set_page_config(
-    page_title="Dhi · AI Voice Assistant",
+    page_title="DHI OS v3.0 · JARVIS Protocol",
     page_icon="🌸",
     layout="centered",
     initial_sidebar_state="expanded",
@@ -40,6 +41,12 @@ def _init_state() -> None:
     ss.setdefault("default_city", None)
     ss.setdefault("autoplay_html", "")       # TTS to play on this render
     ss.setdefault("pending_voice", [])       # voice transcripts awaiting processing
+    # JARVIS protocol state
+    ss.setdefault("booted", False)           # boot sequence shown once per session
+    ss.setdefault("session_id", uuid.uuid4().hex[:6].upper())
+    ss.setdefault("last_cmd", None)          # last command executed
+    ss.setdefault("last_latency", None)      # last brain.respond latency (ms)
+    ss.setdefault("mic_state", "STANDBY")    # STANDBY / CAPTURING / HANDS-FREE
     # settings (widget-backed)
     ss.setdefault("set_voice", True)          # speak replies aloud
     ss.setdefault("set_audio_player", False)  # show replay player in bubbles
@@ -51,6 +58,10 @@ def _init_state() -> None:
 
 
 _init_state()
+
+if not st.session_state.booted:
+    ui_styles.render_boot_overlay()
+    st.session_state.booted = True
 
 
 # --------------------------------------------------------------------------- #
@@ -99,12 +110,25 @@ def handle_command(text: str, source: str = "text") -> None:
         "ts": dt.datetime.now().strftime("%H:%M"),
     })
 
+    uptime = int((dt.datetime.now() - st.session_state.session_started).total_seconds())
     ctx = {
         "user_name": st.session_state.user_name,
         "notes": st.session_state.notes,
         "default_city": st.session_state.default_city,
+        "stats": {
+            "uptime": uptime,
+            "commands": st.session_state.command_count,
+            "notes": len(st.session_state.notes),
+            "timers": len(st.session_state.timers),
+            "mic": st.session_state.mic_state,
+            "lang": st.session_state.set_rec_lang,
+            "session_id": st.session_state.session_id,
+        },
     }
+    t0 = time.perf_counter()
     reply = brain.respond(text, ctx)
+    st.session_state.last_latency = round((time.perf_counter() - t0) * 1000)
+    st.session_state.last_cmd = text[:40]
 
     if reply.action == "set_name":
         st.session_state.user_name = reply.data.get("name")
@@ -146,7 +170,7 @@ def _drain_voice() -> None:
 
 
 def _transcript_markdown() -> str:
-    lines = [f"# Dhi chat export — {dt.datetime.now():%Y-%m-%d %H:%M}", ""]
+    lines = [f"# DHI OS · chat export — {dt.datetime.now():%Y-%m-%d %H:%M}", ""]
     for m in st.session_state.messages:
         who = "🧑 You" if m["role"] == "user" else "🌸 Dhi"
         lines.append(f"**{who}** _({m.get('ts', '')})_:  ")
@@ -189,6 +213,7 @@ def voice_panel() -> None:
         proc.ensure_recording()
 
         if st.session_state.set_handsfree:
+            st.session_state.mic_state = "HANDS-FREE"
             ui_styles.render_listening_orb(
                 True, "🎧 Hands-free — call “Dhi” and speak; I send when you pause")
             results = proc.pop_results()
@@ -196,8 +221,10 @@ def voice_panel() -> None:
                 st.session_state.pending_voice = results
                 st.rerun(scope="app")
         else:
+            st.session_state.mic_state = "CAPTURING"
             ui_styles.render_listening_orb(True, "🎙️ Recording — press **Stop** to send")
     else:
+        st.session_state.mic_state = "STANDBY"
         if proc is not None:
             leftover = proc.finalize_now()   # flush push-to-talk / interrupted speech
             if leftover:
@@ -242,7 +269,19 @@ def timers_fragment() -> None:
 #  Sidebar — settings, notes, stats, export
 # --------------------------------------------------------------------------- #
 with st.sidebar:
-    ui_styles.render_hero(st.session_state.user_name)
+    ui_styles.render_mini_hero(st.session_state.user_name)
+
+    ui_styles.render_section("🛰️ Core diagnostics")
+    uptime_sec = int((dt.datetime.now() - st.session_state.session_started).total_seconds())
+    ui_styles.render_diagnostics(
+        session=st.session_state.session_id,
+        uptime_sec=uptime_sec,
+        commands=st.session_state.command_count,
+        mic=st.session_state.mic_state,
+        lang=st.session_state.set_rec_lang,
+        voice=st.session_state.set_voice,
+        last=st.session_state.last_cmd,
+    )
 
     ui_styles.render_section("⚙️ Settings")
     st.toggle("🔊 Speak replies aloud", key="set_voice")
@@ -299,7 +338,11 @@ with st.sidebar:
 # --------------------------------------------------------------------------- #
 #  Main layout
 # --------------------------------------------------------------------------- #
-ui_styles.render_hero(st.session_state.user_name)
+ui_styles.render_hero(
+    st.session_state.user_name,
+    uptime=int((dt.datetime.now() - st.session_state.session_started).total_seconds()),
+    commands=st.session_state.command_count,
+)
 
 # ---- quick actions -----------------------------------------------------------
 ui_styles.render_section("⚡ Quick actions")
@@ -309,15 +352,17 @@ QUICK_ACTIONS = [
     ("🌦️ Weather", "weather in London"),
     ("📰 News", "show me the news"),
     ("🧮 Math", "calculate 15 percent of 2400"),
+    ("🛰️ Status", "system status"),
     ("😄 Joke", "tell me a joke"),
     ("💡 Fact", "tell me a fun fact"),
     ("💬 Quote", "give me an inspiring quote"),
     ("🪙 Coin", "flip a coin"),
+    ("🎲 Dice", "roll a dice"),
     ("❓ Help", "what can you do"),
 ]
-for row_start in range(0, len(QUICK_ACTIONS), 5):
-    cols = st.columns(5)
-    for col, (label, cmd) in zip(cols, QUICK_ACTIONS[row_start:row_start + 5]):
+for row_start in range(0, len(QUICK_ACTIONS), 6):
+    cols = st.columns(6)
+    for col, (label, cmd) in zip(cols, QUICK_ACTIONS[row_start:row_start + 6]):
         if col.button(label, key=f"qa_{label}", use_container_width=True):
             handle_command(cmd, source="quick")
 
@@ -341,12 +386,22 @@ for msg in st.session_state.messages:
                 and st.session_state.set_audio_player):
             st.audio(msg["audio"], format="audio/mp3")
         st.markdown(msg["content"])
-        st.caption(msg.get("ts", ""))
+        ts = msg.get("ts", "")
+        st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
 
 prompt = st.chat_input(
-    "Type a message… e.g. “weather in Tokyo”, “calculate 15% of 2400”, “tell me a joke”"
+    "Send a command — “system status”, “weather in Tokyo”, “play some music”…"
 )
 if prompt:
+    now_str = dt.datetime.now().strftime("%H:%M")
+    with st.chat_message("user", avatar="🧑‍🚀"):
+        st.markdown(prompt)
+        st.caption(now_str)
+    ph = st.empty()
+    for label in ("ANALYZING", "PROCESSING", "COMPUTING", "EXECUTING"):
+        ph.markdown(ui_styles.render_processing(label), unsafe_allow_html=True)
+        time.sleep(0.25)
+    ph.empty()
     handle_command(prompt, source="text")
 
 # ---- voice replies (auto-play once) -------------------------------------------
