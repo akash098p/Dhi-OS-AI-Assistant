@@ -98,8 +98,12 @@ def _say(spoken: str, display: str, icon: str = "✨") -> None:
     st.session_state.messages = st.session_state.messages[-MAX_MESSAGES:]
 
 
-def handle_command(text: str, source: str = "text") -> None:
-    """Process one user command end-to-end and refresh the UI."""
+def handle_command(text: str, source: str = "text", rerun: bool = True) -> None:
+    """Process one user command end-to-end and refresh the UI.
+
+    ``rerun=False`` lets callers batch several commands (e.g. queued voice
+    transcripts) into a single refresh at the end.
+    """
     text = (text or "").strip()
     if not text:
         return
@@ -142,12 +146,20 @@ def handle_command(text: str, source: str = "text") -> None:
 
     st.session_state.notes = ctx.get("notes", st.session_state.notes)
     _say(reply.spoken, reply.display, reply.icon)
-    st.rerun()
+    if rerun:
+        st.rerun()
 
 
 def _drain_voice() -> None:
-    """Process any transcripts captured by the microphone."""
-    for text in st.session_state.pending_voice:
+    """Process any transcripts captured by the microphone.
+
+    The queue is cleared *before* processing (``st.rerun`` would otherwise
+    abort the loop and reprocess the same utterances forever), and the UI is
+    refreshed once at the end.
+    """
+    pending = st.session_state.pending_voice
+    st.session_state.pending_voice = []
+    for text in pending:
         if text.startswith("[speech service error"):
             st.session_state.messages.append({
                 "role": "assistant",
@@ -156,18 +168,21 @@ def _drain_voice() -> None:
                 "ts": dt.datetime.now().strftime("%H:%M"),
             })
             continue
-        if not text.strip():
-            # STT returned speech but no words — surface feedback so Dhi
-            # doesn't look "broken" when she silently hears nothing.
+        if text == "[inaudible]" or not text.strip():
+            # STT heard sound but couldn't decode words — surface feedback so
+            # Dhi never looks "deaf" when she silently hears nothing.
             st.session_state.messages.append({
                 "role": "assistant",
-                "content": "🤔 I didn't catch that — check your mic/internet or try speaking a bit louder.",
+                "content": "🤔 I heard something but couldn't make out the words — "
+                           "try speaking a bit louder and closer to the mic.",
                 "icon": "🤔", "audio": None,
                 "ts": dt.datetime.now().strftime("%H:%M"),
             })
             continue
-        handle_command(text, source="voice")   # reruns internally
-    st.session_state.pending_voice = []
+        st.session_state.last_heard = text
+        handle_command(text, source="voice", rerun=False)
+    if pending:
+        st.rerun()
 
 
 def _transcript_markdown() -> str:
@@ -219,6 +234,7 @@ def voice_panel() -> None:
                 True, "🎧 Hands-free — call “Dhi” and speak; I send when you pause")
             results = proc.pop_results()
             if results:
+                st.session_state.last_heard = results[-1]
                 st.session_state.pending_voice = results
                 st.rerun(scope="app")
         else:
@@ -229,12 +245,18 @@ def voice_panel() -> None:
         if proc is not None:
             leftover = proc.finalize_now()   # flush push-to-talk / interrupted speech
             if leftover:
+                st.session_state.last_heard = leftover
                 st.session_state.pending_voice = [leftover]
                 st.rerun(scope="app")
         hint = ("👋 Tap **Start** and just talk — say **“Dhi”** to get her attention"
                 if st.session_state.set_handsfree
                 else "👋 Tap **Start**, speak, then tap **Stop**")
         ui_styles.render_listening_orb(False, hint)
+
+    heard = st.session_state.get("last_heard")
+    if heard:
+        st.markdown(f"<div class='note-chip'>🎧 Last heard: “{heard}”</div>",
+                    unsafe_allow_html=True)
 
 
 @st.fragment(run_every=2)
@@ -376,7 +398,41 @@ for row_start in range(0, len(QUICK_ACTIONS), 6):
         if col.button(label, key=f"qa_{label}", use_container_width=True):
             handle_command(cmd, source="quick")
 
-# ---- two-pane workspace -------------------------------------------------------
+# ---- conversation messages (rendered before columns so chat_input
+#      can live at the top level) ----------------------------------------------
+ui_styles.render_section("💬 Conversation")
+_drain_voice()
+
+if not st.session_state.messages:
+    ui_styles.render_empty_state()
+
+for msg in st.session_state.messages:
+    avatar = "🧑‍🚀" if msg["role"] == "user" else "🌸"
+    with st.chat_message(msg["role"], avatar=avatar):
+        if (msg["role"] == "assistant" and msg.get("audio")
+                and st.session_state.set_audio_player):
+            st.audio(msg["audio"], format="audio/mp3")
+        st.markdown(msg["content"])
+        ts = msg.get("ts", "")
+        st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
+
+# ---- chat input (MUST be top-level, not inside a column) ----------------------
+prompt = st.chat_input(
+    "Send a command — “system status”, “weather in Tokyo”, “play some music”…"
+)
+if prompt:
+    now_str = dt.datetime.now().strftime("%H:%M")
+    with st.chat_message("user", avatar="🧑‍🚀"):
+        st.markdown(prompt)
+        st.caption(now_str)
+    ph = st.empty()
+    for label in ("ANALYZING", "PROCESSING", "COMPUTING", "EXECUTING"):
+        ph.markdown(ui_styles.render_processing(label), unsafe_allow_html=True)
+        time.sleep(0.25)
+    ph.empty()
+    handle_command(prompt, source="text")
+
+# ---- voice console & capabilities (two-column, below conversation) ------------
 col_left, col_right = st.columns([5, 7], gap="large")
 
 with col_left:
@@ -384,40 +440,10 @@ with col_left:
     voice_panel()
     if st.session_state.timers:
         timers_fragment()
-    ui_styles.render_section("✨ What I can do")
-    ui_styles.render_capability_list()
 
 with col_right:
-    ui_styles.render_section("💬 Conversation")
-    _drain_voice()
-
-    if not st.session_state.messages:
-        ui_styles.render_empty_state()
-
-    for msg in st.session_state.messages:
-        avatar = "🧑‍🚀" if msg["role"] == "user" else "🌸"
-        with st.chat_message(msg["role"], avatar=avatar):
-            if (msg["role"] == "assistant" and msg.get("audio")
-                    and st.session_state.set_audio_player):
-                st.audio(msg["audio"], format="audio/mp3")
-            st.markdown(msg["content"])
-            ts = msg.get("ts", "")
-            st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
-
-    prompt = st.chat_input(
-        "Send a command — “system status”, “weather in Tokyo”, “play some music”…"
-    )
-    if prompt:
-        now_str = dt.datetime.now().strftime("%H:%M")
-        with st.chat_message("user", avatar="🧑‍🚀"):
-            st.markdown(prompt)
-            st.caption(now_str)
-        ph = st.empty()
-        for label in ("ANALYZING", "PROCESSING", "COMPUTING", "EXECUTING"):
-            ph.markdown(ui_styles.render_processing(label), unsafe_allow_html=True)
-            time.sleep(0.25)
-        ph.empty()
-        handle_command(prompt, source="text")
+    ui_styles.render_section("✨ What I can do")
+    ui_styles.render_capability_list()
 
 # ---- voice replies (auto-play once) -------------------------------------------
 if st.session_state.autoplay_html:
