@@ -26,13 +26,16 @@ class Reply:
 
 
 _GREETING_RE = re.compile(
-    r"^(?:hi+|hello+|hey|yo|hiya|namaste|greetings|good\s*(?:morning|afternoon|evening|day))\b"
-    r"(?:[\s,!.]*(?:there|echo|alexa|dhi|assistant|team|everyone|friend))*[\s,!.]*$",
+    r"^(?:hi+|hello+|hey|yo|hiya|namaste|greetings|good\s*(?:morning|afternoon|evening|day)"
+    r"|नमस्ते|नमस्कार|हेलो|हैलो|सुप्रभात)(?=\W|$)"
+    r"(?:[\s,!.]*(?:there|echo|alexa|dhi|assistant|team|everyone|friend|धी|डी))*[\s,!.]*$",
     re.IGNORECASE,
 )
-# Called by name only: "Dhi!" / "ok Dhi" -> she answers "Yes? I'm listening."
+# Called by name only: "Dhi!" / "ok Dhi" / "धी" -> she answers "Yes? I'm listening."
 _ATTENTION_RE = re.compile(
-    r"^(?:(?:ok|okay|hey|hi|hello)\s+)?(?:dhi|dhee|dee)$", re.IGNORECASE
+    r"^(?:(?:ok|okay|hey|hi|hello|ओ|अरे|हे|हेय)\s+)?"
+    r"(?:dhi|dhee|dee|धी|धि|डी|डि|ढी|दी)[\s!.,?]*$",
+    re.IGNORECASE,
 )
 # Dhi protocol: "good morning", "good evening sir", "good night" ...
 _PROTOCOL_GREETING_RE = re.compile(
@@ -352,6 +355,20 @@ def respond(command: str, ctx: dict) -> Reply:
     if re.search(r"\broll\b.*\b(?:dice|die)\b|\b(?:dice|die) roll\b", lowered):
         spoken, display = skills.format_dice()
         return Reply(spoken, display, icon="🎲")
+
+    # -- Hindi quick intents (हिंदी) ---------------------------------------------
+    if re.search(r"\b(?:समय|टाइम|टाइम क्या|कितने बज)\w*", lowered):
+        spoken, display = skills.format_time()
+        return Reply(spoken, display, icon="🕒")
+    if re.search(r"\b(?:तारीख|तारीख़|आज कौन स|आज की)\w*", lowered):
+        spoken, display = skills.format_date()
+        return Reply(spoken, display, icon="📅")
+    if re.search(r"\b(?:मौसम)\w*", lowered):
+        spoken, display = skills.format_weather("", (ctx.get("default_city") or None))
+        return Reply(spoken, display, icon="🌦️")
+    if re.search(r"\b(?:चुटकुला|मज़ाक|मजाक|जोक)\w*", lowered):
+        spoken, display = skills.format_joke()
+        return Reply(spoken, display, icon="😄")
 
     # -- remember name ------------------------------------------------------------
     m = re.match(r"^(?:my name is|call me|i go by)\s+([a-z][a-z' -]{1,30})$", lowered)
