@@ -390,6 +390,18 @@ def format_day() -> tuple[str, str]:
     return f"Today is {day}.", f"📆 Today is **{day}**"
 
 
+def format_uptime(seconds: int) -> str:
+    """Pretty-print an uptime duration, e.g. 3725 -> '1h 02m 05s'."""
+    seconds = max(0, int(seconds))
+    h, rem = divmod(seconds, 3600)
+    m, s = divmod(rem, 60)
+    if h:
+        return f"{h}h {m:02d}m {s:02d}s"
+    if m:
+        return f"{m}m {s:02d}s"
+    return f"{s}s"
+
+
 # --------------------------------------------------------------------------- #
 #  Links, sites & search
 # --------------------------------------------------------------------------- #
