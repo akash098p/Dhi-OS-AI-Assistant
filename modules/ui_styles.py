@@ -1,11 +1,11 @@
-"""Premium JARVIS-style UI layer for DHI OS — HUD theming, boot sequence, animations."""
+"""Premium HUD UI layer for DHI OS — theming, boot sequence, animations."""
 
 from __future__ import annotations
 
 import streamlit as st
 
 # --------------------------------------------------------------------------- #
-#  Theme CSS — "DHI OS · JARVIS Protocol" HUD
+#  Theme CSS — "DHI OS" HUD
 # --------------------------------------------------------------------------- #
 _CSS1 = """
 <style>
@@ -368,14 +368,14 @@ def _fmt_hhmmss(seconds: int) -> str:
 
 
 def render_boot_overlay() -> None:
-    """Full-screen JARVIS boot sequence (CSS auto-fades after ~4.5 s)."""
+    """Full-screen DHI boot sequence (CSS auto-fades after ~4.5 s)."""
     st.markdown(
         """
         <div class="boot-overlay">
           <div class="boot-inner">
             <div class="boot-core">DHI</div>
             <div class="boot-title">DHI&nbsp;OS <span class="boot-ver">v3.0</span></div>
-            <div class="boot-sub">JARVIS Protocol · Premium Edition</div>
+            <div class="boot-sub">DHI OS · Premium Edition</div>
             <div class="boot-lines">
               <div class="boot-line"><span>&gt;</span> Neural core ........... <b>ONLINE</b></div>
               <div class="boot-line"><span>&gt;</span> Audio subsystem ....... <b>CALIBRATED</b></div>
@@ -401,7 +401,7 @@ def render_hero(user_name: str | None = None, uptime: int = 0,
     st.markdown(
         f"""
         <div class="hero">
-          <div class="hero-badge">✦ DHI OS v3.0 · JARVIS PROTOCOL</div>
+          <div class="hero-badge">✦ DHI OS v3.0 · PREMIUM EDITION</div>
           <div class="core-wrap">
             <div class="core-frame">
               <div class="core-corner tl"></div><div class="core-corner tr"></div>
@@ -419,7 +419,7 @@ def render_hero(user_name: str | None = None, uptime: int = 0,
             </div>
           </div>
           <h1 class="core-h">Welcome{who} — <span class="grad">Dhi</span> is online</h1>
-          <p>Speak or type: weather, news, math, music, knowledge, timers &amp; more — JARVIS-class response time.</p>
+          <p>Speak or type: weather, news, math, music, knowledge, timers &amp; more — instant response time.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -435,7 +435,7 @@ def render_mini_hero(user_name: str | None = None) -> None:
           <div class="mini-logo">◈</div>
           <div class="mini-text">
             <div class="mini-name">DHI OS</div>
-            <div class="mini-sub">v3.0 · JARVIS PROTOCOL</div>
+            <div class="mini-sub">v3.0 · Premium Edition</div>
             <div class="mini-who">Hello, {who}</div>
           </div>
         </div>
@@ -468,7 +468,7 @@ def render_section(title: str) -> None:
 
 
 def render_processing(label: str = "PROCESSING") -> str:
-    """JARVIS-style 'processing' chip (bouncing bars + label)."""
+    """DHI 'processing' chip (bouncing bars + label)."""
     bars = "".join("<span></span>" for _ in range(5))
     return (f'<div class="proc-wrap"><div class="proc-bars">{bars}</div>'
             f'<div class="proc-label">{label}</div></div>')
@@ -547,7 +547,7 @@ def render_empty_state() -> None:
 
 def render_footer() -> None:
     st.markdown(
-        '<div class="footer">DHI OS v3.0 · JARVIS Protocol · Python + Streamlit · '
+        '<div class="footer">DHI OS v3.0 · Premium Edition · Python + Streamlit · '
         'Crafted with 💜 and a lot of ☕</div>',
         unsafe_allow_html=True,
     )
