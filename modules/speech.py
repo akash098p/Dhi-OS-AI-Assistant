@@ -17,8 +17,9 @@ from gtts import gTTS
 # Short names get mis-heard by STT engines, so common variants are accepted:
 # "dhi", "dhee", "dee", "de", "the", "d".
 _WAKE_WORD_RE = re.compile(
-    r"^(?:hey\s+|hi\s+|ok\s+|okay\s+|hello\s+)?"
-    r"(?:dhi|dhee|dhe|dee|de|the|d|alexa|echostream|echo\s*stream)\b[\s,!.?::-]*",
+    r"^(?:hey\s+|hi\s+|ok\s+|okay\s+|hello\s+|हे\s+|हेय\s+|अरे\s+|ओ\s+)?"
+    r"(?:dhi|dhee|dhe|dee|de|the|d|alexa|echostream|echo\s*stream|धी|धि|डी|डि|ढी)"
+    r"(?=\W|$)[\s,!.?::-]*",
     re.IGNORECASE,
 )
 
