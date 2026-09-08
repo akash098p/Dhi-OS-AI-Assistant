@@ -12,6 +12,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+# Windows consoles default to cp1252 — make Unicode (Hindi) test output safe.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 import numpy as np  # noqa: E402
 from modules import brain, skills, speech  # noqa: E402
 from modules.webrtc_audio import AudioProcessor, strip_wake_word  # noqa: E402
@@ -94,6 +98,8 @@ check("strip 'dhi' wake", strip_wake_word("dhi what time is it") == "what time i
 check("strip 'hey dhi'", strip_wake_word("hey dhi, weather in paris") == "weather in paris")
 check("bare 'dhi' kept", strip_wake_word("dhi") == "dhi")
 check("strip double 'dhi'", strip_wake_word("dhi dhi open youtube") == "open youtube")
+check("strip devanagari 'धी खोलो'", strip_wake_word("धी खोलो") == "खोलो")
+check("bare 'धी' kept", strip_wake_word("धी") == "धी")
 
 print("- brain intents (offline) -")
 r = brain.respond("hello", {})
@@ -129,6 +135,16 @@ r = brain.respond("who is dhi", ctx)
 check("knows herself", "Dhi" in r.display and r.icon == "🤖")
 r = brain.respond("dhi, tell me a joke", ctx)
 check("'dhi,' prefix stripped", r.icon == "😄")
+r = brain.respond("धी", {})
+check("answers devanagari call ('धी')", r.icon == "👂")
+r = brain.respond("hey धी", {})
+check("'hey धी' greets", r.icon == "👋")
+r = brain.respond("नमस्ते", {})
+check("namaste greeting", r.icon == "👋")
+r = brain.respond("धी समय क्या हुआ", {})
+check("hindi time intent", r.icon == "🕒")
+r = brain.respond("एक मज़ाक सुनाओ", {})
+check("hindi joke intent", r.icon == "😄")
 
 r = brain.respond("set a timer for 5 minutes", ctx)
 check("timer intent", r.action == "set_timer" and r.data["seconds"] == 300)
