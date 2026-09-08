@@ -116,7 +116,10 @@ def translate_text(text: str, language_label: str = "English (US)") -> str:
         return text
     try:
         result = t.translate(text, lang)
-        return getattr(result, "text", None) or text
+        # translatepy 2.x exposes the translation on `.result` (older builds used
+        # `.text`) — check both so we never silently fall back to the original.
+        translated = getattr(result, "result", None) or getattr(result, "text", None)
+        return translated or text
     except Exception:
         return text
 
