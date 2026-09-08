@@ -1,8 +1,8 @@
-# ◈ DHI OS · **JARVIS Protocol** — A Premium Voice-First AI Assistant
+# ◈ DHI OS — A Premium Voice-First AI Assistant
 
-> **v3.0 · JARVIS Protocol Edition** — meet **Dhi**: call her by name and she answers.
+> **v3.0 · Premium Edition** — meet **Dhi**: call her by name and she answers.
 > Speak or type anything — weather, news, knowledge, math, music, timers, notes,
-> conversions and much more — wrapped in a JARVIS-class HUD with an animated
+> conversions and much more — wrapped in a premium HUD with an animated
 > boot sequence, arc-reactor core and live system diagnostics.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
@@ -11,12 +11,12 @@
 
 ---
 
-## ✨ What's new in v3.0 (JARVIS Protocol)
+## ✨ What's new in v3.0 (DHI OS)
 
 | Area | Before | Now |
 |---|---|---|
 | **Boot** | Static hero screen | Full-screen **DHI OS boot sequence** — reactor core, staggered system checks (`neural core online → all systems nominal`) and animated progress bar, then auto-fade |
-| **Identity** | Simple greeting | **JARVIS-class persona** — "Good morning, sir. All systems operational", "Powering down… standing by", "Wake up" to revive |
+| **Identity** | Simple greeting | **Dhi persona** — "Good morning, sir. All systems operational", "Powering down… standing by", "Wake up" to revive |
 | **Diagnostics** | Basic stats row | Live **Core Diagnostics HUD** — session id, uptime, command count, mic state, voice language, core-load bar, last command |
 | **Input feel** | Instant replies | **ANALYZING → PROCESSING → COMPUTING → EXECUTING** animation before typed replies |
 | **Voice console** | Static orb | Arc-reactor orb with **animated equalizer** while listening |
@@ -37,14 +37,14 @@
 - 🗣️ **15 languages** — English variants, Hindi, Spanish, French, German, Japanese, and more.
 - 🔁 Optional replay player inside every reply bubble.
 
-### JARVIS protocol
+### Dhi protocol
 - 🛰️ **System status** — “system status” · “run diagnostics” → live report of
   uptime, commands, notes, timers, mic state, voice language and core load.
 - 🟢 **Protocol greetings** — “good morning sir” · “good evening” → *“All systems
   are operational, and I'm at your service.”*
 - 🔻 **Power down / revive** — “power down” · “go to sleep” → *standing by on low
   power*; “wake up” → *all systems online*.
-- 🖥️ **Boot sequence** — every session opens with a JARVIS-style core boot,
+- 🖥️ **Boot sequence** — every session opens with an animated DHI core boot,
   then melts away into the workspace.
 
 ### Brain (25+ intents)
@@ -73,7 +73,7 @@ Unrecognized input never dead-ends: it returns handy web-search links.
 ---
 
 ### Interface
-- **DHI OS boot sequence** — JARVIS-style core splash on every session, auto-fades
+- **DHI OS boot sequence** — premium animated core splash on every session, auto-fades
 - Animated gradient background + subtle CRT scanlines + custom fonts (Michroma / Outfit / JetBrains Mono)
 - **Arc-reactor hero** with rotating rings, HUD readouts and angular command buttons
 - Sidebar **Core Diagnostics** console — session id, uptime, commands, mic, voice language, core-load bar
@@ -126,9 +126,9 @@ DHI-OS/
 │   ├── skills.py              # Skill library: weather, news, math, currency…
 │   ├── speech.py              # TTS engine, wake word "Dhi", alert beeps
 │   ├── webrtc_audio.py        # Thread-safe mic capture + VAD + STT
-│   └── ui_styles.py           # JARVIS HUD theme, boot sequence, components
+│   └── ui_styles.py           # DHI HUD theme, boot sequence, components
 ├── tests/
-│   └── smoke_test.py          # 65 offline tests for brain/skills/audio/JARVIS
+│   └── smoke_test.py          # 65 offline tests for brain/skills/audio/protocol
 ├── .streamlit/
 │   ├── config.toml            # Premium dark theme
 │   ├── secrets.toml           # Your API keys (never commit!)
@@ -180,7 +180,7 @@ python tests/smoke_test.py
 
 65 assertions cover the wake word ("Dhi" & variants), the calculator (incl.
 safe-eval code-injection blocking), durations, unit conversion, all offline
-brain intents (incl. answering when called), the JARVIS protocol (status report,
+brain intents (incl. answering when called), the Dhi protocol (status report,
 protocol greetings, power down / wake up), and the audio processor
 (synthetic WebRTC frames).
 
