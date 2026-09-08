@@ -147,6 +147,12 @@ class AudioProcessor(AudioProcessorBase):
         if text:
             with self._lock:
                 self._results.append(text)
+        else:
+            # Recognition failed (noise / unclear speech) — surface feedback
+            # instead of silently dropping the utterance, so the user knows
+            # the mic heard *something* but couldn't decode it.
+            with self._lock:
+                self._results.append("[inaudible]")
 
     # ------------------------------------------------------------------ public
     def pop_results(self) -> list[str]:
