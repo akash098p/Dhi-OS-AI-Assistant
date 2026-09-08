@@ -22,7 +22,7 @@ from modules.webrtc_audio import AudioProcessor
 #  Page setup & session state
 # --------------------------------------------------------------------------- #
 st.set_page_config(
-    page_title="DHI OS v3.0 · JARVIS Protocol",
+    page_title="DHI OS v3.0",
     page_icon="🌸",
     layout="centered",
     initial_sidebar_state="expanded",
@@ -41,7 +41,7 @@ def _init_state() -> None:
     ss.setdefault("default_city", None)
     ss.setdefault("autoplay_html", "")       # TTS to play on this render
     ss.setdefault("pending_voice", [])       # voice transcripts awaiting processing
-    # JARVIS protocol state
+    # Dhi core state
     ss.setdefault("booted", False)           # boot sequence shown once per session
     ss.setdefault("session_id", uuid.uuid4().hex[:6].upper())
     ss.setdefault("last_cmd", None)          # last command executed
