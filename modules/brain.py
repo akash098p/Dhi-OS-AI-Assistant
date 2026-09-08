@@ -34,8 +34,8 @@ _GREETING_RE = re.compile(
 _ATTENTION_RE = re.compile(
     r"^(?:(?:ok|okay|hey|hi|hello)\s+)?(?:dhi|dhee|dee)$", re.IGNORECASE
 )
-# JARVIS protocol: "good morning", "good evening sir", "good night" ...
-_JARVIS_GREETING_RE = re.compile(
+# Dhi protocol: "good morning", "good evening sir", "good night" ...
+_PROTOCOL_GREETING_RE = re.compile(
     r"^(?:good\s+)?(?:morning|afternoon|evening|day|night)"
     r"(?:\s*(?:sir|ma'?am|madam|boss|captain|commander|agent|maestro))?$",
     re.IGNORECASE,
@@ -54,8 +54,8 @@ def _greeting(ctx: dict) -> Reply:
     )
 
 
-def _jarvis_greeting(ctx: dict) -> Reply:
-    """JARVIS-protocol greeting: 'good morning sir' -> systems operational."""
+def _protocol_greeting(ctx: dict) -> Reply:
+    """Dhi protocol greeting: 'good morning sir' -> systems operational."""
     hour = dt.datetime.now().hour
     period = "morning" if 5 <= hour < 12 else "afternoon" if 12 <= hour < 17 else "evening"
     who = ctx.get("user_name") or "sir"
@@ -67,7 +67,7 @@ def _jarvis_greeting(ctx: dict) -> Reply:
 
 
 def _status_reply(ctx: dict) -> Reply:
-    """JARVIS-style system status report powered by live session stats."""
+    """Dhi system status report powered by live session stats."""
     s = ctx.get("stats") or {}
     commands = int(s.get("commands", 0))
     notes = int(s.get("notes", 0))
@@ -183,8 +183,8 @@ def respond(command: str, ctx: dict) -> Reply:
                      "🤔 I didn't catch that — say it again, or type below.", icon="👂")
 
     # -- small talk & meta ---------------------------------------------------
-    if _JARVIS_GREETING_RE.match(lowered):          # "good morning sir" etc.
-        return _jarvis_greeting(ctx)
+    if _PROTOCOL_GREETING_RE.match(lowered):        # "good morning sir" etc.
+        return _protocol_greeting(ctx)
     if _GREETING_RE.match(lowered):
         return _greeting(ctx)
     if _ATTENTION_RE.match(lowered):          # called by name: "Dhi!"
@@ -212,7 +212,7 @@ def respond(command: str, ctx: dict) -> Reply:
         return _status_reply(ctx)
     if re.search(r"\bthanks?\b|\bthank you\b|\bappreciate\b", lowered):
         return Reply("You're welcome!", "💙 You're very welcome!", icon="💙")
-    # -- JARVIS standby protocol -----------------------------------------------
+    # -- standby protocol -------------------------------------------------------
     if re.search(r"\b(?:shut\s*down|power\s*(?:down|off)|go\s+to\s+sleep|sleep\s+mode|stand\s*by|deactivate|deep\s+sleep)\b",
                  lowered):
         return Reply("Powering down. I'll remain on standby if you need me.",
