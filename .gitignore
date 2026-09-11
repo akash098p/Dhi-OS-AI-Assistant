@@ -16,3 +16,6 @@ env/
 Thumbs.db
 .idea/
 .vscode/
+
+# Dhi.bat boot logs (regenerated on every launch)
+boot_*.txt
