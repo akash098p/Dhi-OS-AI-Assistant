@@ -17,8 +17,18 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import numpy as np  # noqa: E402
-from modules import brain, skills, speech  # noqa: E402
+from modules import brain, llm, skills, speech  # noqa: E402
 from modules.webrtc_audio import AudioProcessor, strip_wake_word  # noqa: E402
+
+# Keep the LLM big-brain offline for the whole suite: whatever keys are installed
+# in .streamlit/secrets.toml or the environment, every LLM path must degrade
+# gracefully to the old search-link fallback while tests run.
+import os  # noqa: E402
+
+_LLM_KEYS = ("GEMINI_API_KEY", "OPENROUTER_API_KEY", "GEMINI_MODEL", "OPENROUTER_MODEL")
+_LLM_SAVED_SECRET = llm._secret
+_LLM_SAVED_ENV = {k: os.environ.pop(k, None) for k in _LLM_KEYS}
+llm._secret = lambda _name: ""  # type: ignore[assignment]
 
 PASS, FAIL = 0, []
 
@@ -150,7 +160,7 @@ r = brain.respond("set a timer for 5 minutes", ctx)
 check("timer intent", r.action == "set_timer" and r.data["seconds"] == 300)
 r = brain.respond("goodbye", ctx)
 check("bye", r.action == "goodbye")
-r = brain.respond("weather in london", ctx)
+r = brain.respond("weather in kolkata", ctx)
 check("weather path responds", isinstance(r.display, str) and len(r.display) > 5)
 r = brain.respond("open youtube", ctx)
 check("open site", "youtube.com" in r.display)
@@ -221,6 +231,32 @@ check("coin", "Heads" in c0 or "Tails" in c0)
 d = skills.format_dice()[0]
 check("dice in 1..6", any(str(n) in d for n in range(1, 7)))
 check("fact non-empty", len(skills.format_fact()[0]) > 20)
+
+print("- llm module (offline) -")
+# st.secrets access in earlier tests (e.g. the weather check) injects secret
+# values into os.environ in bare mode — re-neutralize right here so the LLM
+# big-brain stays offline regardless of installed keys.
+for _k in _LLM_KEYS:
+    os.environ.pop(_k, None)
+check("disabled without any key", not llm.enabled())
+check("answer -> None without keys", llm.answer("any question") is None)
+check("should_search real-time words", llm.should_search("latest cricket score today") is True)
+check("should_search year", llm.should_search("what happened in 2024") is True)
+check("should_search plain knowledge", llm.should_search("who is Ada Lovelace") is False)
+sr = llm.web_search("python programming language")
+check("web_search is str or graceful None", sr is None or isinstance(sr, str))
+os.environ["GEMINI_API_KEY"] = "test-key"
+check("enabled() flips on with env key", llm.enabled() is True)
+os.environ.pop("GEMINI_API_KEY", None)
+check("disabled again after key removed", not llm.enabled())
+
+# restore the real key plumbing so nothing leaks out of the test run
+llm._secret = _LLM_SAVED_SECRET
+for _k, _v in _LLM_SAVED_ENV.items():
+    if _v is not None:
+        os.environ[_k] = _v
+for _k in ("GEMINI_API_KEY", "OPENROUTER_API_KEY"):
+    os.environ.pop(_k, None)  # drop keys st.secrets injected during the run
 
 print(f"\nResult: {PASS} passed, {len(FAIL)} failed")
 if FAIL:
