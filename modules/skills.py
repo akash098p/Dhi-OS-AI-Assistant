@@ -111,7 +111,7 @@ def format_weather(city: str = "", default_city: str | None = None) -> tuple[str
         msg = "Add a free OpenWeatherMap key to `.streamlit/secrets.toml` as `OPENWEATHER_API_KEY`."
         return "I need an OpenWeatherMap API key for weather.", f"🔑 {msg}"
 
-    target = (city or "").strip() or (default_city or "").strip() or detect_location() or "London"
+    target = (city or "").strip() or (default_city or "").strip() or detect_location() or "Kolkata"
     data = fetch_weather(target, key)
     if data is None:
         return ("Sorry, the weather service is not responding right now.",
