@@ -11,7 +11,7 @@ import datetime as dt
 import re
 from dataclasses import dataclass, field
 
-from . import skills, speech
+from . import llm, skills, speech
 
 
 @dataclass
@@ -385,7 +385,17 @@ def respond(command: str, ctx: dict) -> Reply:
         spoken, display = skills.wiki_summary(m.group(1).strip())
         return Reply(spoken, display, icon="📚")
 
-    # -- graceful fallback ------------------------------------------------------------
+    # -- graceful fallback: real answers via the LLM (Gemini → OpenRouter) -------------
+    # No regex skill matched — ask the big brain. Recent chat history is passed
+    # for follow-ups; ``llm.answer`` returns None when no API key is configured
+    # or every provider fails, keeping the old search-link fallback.
+    history = list(ctx.get("history") or [])
+    if history and history[-1].get("role") == "user":
+        history = history[:-1]        # current question is appended by llm.answer
+    llm_reply = llm.answer(text, history or None)
+    if llm_reply:
+        return Reply(llm_reply, f"🌐 {llm_reply}", icon="🌐")
+
     spoken = f"I'm not sure about that. Here's a web search for {text}."
     display = (f"🤔 I couldn't map **“{text}”** to a skill yet — try one of these:\n\n"
                f"- [🔍 Google]({skills.google_url(text)})\n"
