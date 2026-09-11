@@ -22,6 +22,7 @@
 | **Voice console** | Static orb | Arc-reactor orb with **animated equalizer** while listening |
 | **Typography** | Single font | **Michroma** (HUD) + **JetBrains Mono** (readouts) + Outfit (body) |
 | **Commands** | 25 intents | + **system status** report, protocol greetings, power down / wake up (`🛰️ Status` quick action) |
+| **Brain** | Regex-only, dead-end search links | + **LLM universal answers** — Gemini primary, OpenRouter fallback, live web-grounded |
 
 ---
 
@@ -51,9 +52,10 @@
 | Skill | Try saying |
 |---|---|
 | 🕒 Time & date | "what time is it" · "what's the date today" |
-| 🌦️ Weather | "weather in Tokyo" · "how hot is it in Dubai" (auto IP-detect if no city) |
+| 🌦️ Weather | "weather in Tokyo" · "how hot is it in Dubai" (auto IP-detect → **Kolkata** if no city) |
 | 📰 News | "show me the news" · "news about cricket" |
 | 📚 Knowledge | "who is Ada Lovelace" · "tell me about black holes" |
+| 🧠 Universal | any free-form question — LLM answers (Gemini → OpenRouter, web-grounded) |
 | 🧮 Math | "calculate 25 times 8" · "what is 15% of 2400" · "square root of 144" |
 | 💱 Currency | "convert 100 usd to inr" (live rates) |
 | 📐 Units | "convert 10 km to miles" · "convert 100 f to c" |
@@ -130,6 +132,7 @@ DHI-OS/
 ├── app.py                     # UI layer: hero, sidebar, fragments, chat
 ├── modules/
 │   ├── brain.py               # Intent engine: command → Reply (25+ intents)
+│   ├── llm.py                 # LLM big brain: Gemini primary + OpenRouter fallback
 │   ├── skills.py              # Skill library: weather, news, math, currency…
 │   ├── speech.py              # TTS engine, wake word "Dhi", alert beeps
 │   ├── webrtc_audio.py        # Thread-safe mic capture + VAD + STT
@@ -154,6 +157,10 @@ DHI-OS/
                     SpeechRecognition (Google STT, 15 locales)
                             ▼
                     brain.respond(command, ctx)  ──regex NLU──▶ 25+ intents
+                            │  (no skill matched)
+                            ▼
+              llm.answer(question, history)  ──Gemini──▶ OpenRouter fallback
+                            │
                             ▼
                     skills.<handler>()  →  Reply{spoken, display, action}
                             ▼
@@ -167,6 +174,8 @@ DHI-OS/
 
 | Service | Used for | Required? |
 |---|---|---|
+| [Google Gemini](https://aistudio.google.com/apikey) | **Universal answers** (primary LLM) | Recommended (free) |
+| [OpenRouter](https://openrouter.ai/keys) | LLM fallback if Gemini fails / rate-limited | Optional (free) |
 | [OpenWeatherMap](https://openweathermap.org/api) | Weather skill | Recommended (free) |
 | Google News RSS | News skill | No key needed |
 | dictionaryapi.dev + Wiktionary | Dictionary | No key needed |
@@ -176,6 +185,13 @@ DHI-OS/
 
 Put keys in `.streamlit/secrets.toml` (see `secrets.example.toml`). The file is
 git-ignored — never commit real keys.
+
+**LLM brain:** when no skill matches, Dhi answers via Gemini
+(`gemini-2.5-flash` by default); if Gemini is missing or errors, OpenRouter
+takes over (`meta-llama/llama-3.3-70b-instruct:free` by default). Time-sensitive
+questions are grounded with live DuckDuckGo snippets (no extra key). Override
+models with `GEMINI_MODEL` / `OPENROUTER_MODEL` in secrets or environment
+variables.
 
 ---
 
@@ -202,6 +218,7 @@ and the audio processor
 | Mic doesn't start | Use localhost or HTTPS; check browser camera/mic permission |
 | "Could not understand audio" | Speak louder/closer; VAD threshold lives in `modules/webrtc_audio.py` (`SPEECH_RMS_THRESHOLD`) |
 | Weather says key missing | Add `OPENWEATHER_API_KEY` to `.streamlit/secrets.toml` |
+| Dhi says "I don't know" or answers are slow | Add the free `GEMINI_API_KEY` (aistudio.google.com/apikey) and optionally `OPENROUTER_API_KEY` (openrouter.ai/keys) to `.streamlit/secrets.toml` — Gemini answers first, OpenRouter takes over on failures/rate limits |
 | Audio doesn't autoplay | Browsers block autoplay until first interaction — click anywhere once |
 | Speech service error | Google STT needs internet; check connectivity |
 
