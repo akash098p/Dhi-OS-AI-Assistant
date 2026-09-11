@@ -37,7 +37,7 @@ def _init_state() -> None:
     ss.setdefault("command_count", 0)
     ss.setdefault("session_started", dt.datetime.now())
     ss.setdefault("user_name", None)
-    ss.setdefault("default_city", None)
+    ss.setdefault("default_city", "Kolkata")
     ss.setdefault("autoplay_html", "")       # TTS to play on this render
     ss.setdefault("pending_voice", [])       # voice transcripts awaiting processing
     # Dhi core state
@@ -120,6 +120,7 @@ def handle_command(text: str, source: str = "text", rerun: bool = True) -> None:
         "user_name": st.session_state.user_name,
         "notes": st.session_state.notes,
         "default_city": st.session_state.default_city,
+        "history": st.session_state.messages[-12:],
         "stats": {
             "uptime": uptime,
             "commands": st.session_state.command_count,
@@ -381,7 +382,7 @@ ui_styles.render_section("⚡ Quick launch")
 QUICK_ACTIONS = [
     ("🕒 Time", "what time is it"),
     ("📅 Date", "what's the date today"),
-    ("🌦️ Weather", "weather in London"),
+    ("🌦️ Weather", "weather in Kolkata"),
     ("📰 News", "show me the news"),
     ("🧮 Math", "calculate 15 percent of 2400"),
     ("🛰️ Status", "system status"),
