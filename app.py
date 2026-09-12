@@ -359,12 +359,18 @@ QUICK_ACTIONS = [
     ("📰 News", "show me the news"),
     ("🧮 Math", "calculate 15 percent of 2400"),
     ("🛰️ Status", "system status"),
-    ("❓ More", "what can you do"),
+    ("😄 Joke", "tell me a joke"),
+    ("💡 Fact", "tell me a fun fact"),
+    ("💬 Quote", "give me an inspiring quote"),
+    ("🪙 Coin", "flip a coin"),
+    ("🎲 Dice", "roll a dice"),
+    ("❓ Help", "what can you do"),
 ]
-cols = st.columns(7)
-for col, (label, cmd) in zip(cols, QUICK_ACTIONS):
-    if col.button(label, key=f"qa_{label}", use_container_width=True):
-        handle_command(cmd, source="quick")
+for row_start in range(0, len(QUICK_ACTIONS), 6):
+    cols = st.columns(6)
+    for col, (label, cmd) in zip(cols, QUICK_ACTIONS[row_start:row_start + 6]):
+        if col.button(label, key=f"qa_{label}", use_container_width=True):
+            handle_command(cmd, source="quick")
 
 # ---- workspace: conversation + ambient status rail --------------------------
 conversation_col, rail_col = st.columns([3.7, 1.25], gap="large")

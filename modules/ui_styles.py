@@ -763,15 +763,9 @@ def render_core_hero(mic_state: str = "STANDBY") -> None:
 def render_workspace_rail(uptime_sec: int, commands: int, session: str,
                                                     city: str, mic_state: str) -> None:
         """Render compact ambient context cards beside the conversation."""
-        weather_city = city or "Your city"
         st.markdown(
                 f"""
                 <aside class="workspace-rail">
-                    <div class="rail-card">
-                        <div class="rail-label">◌ LOCAL CONTEXT</div>
-                        <div class="rail-value">{weather_city}</div>
-                        <div class="rail-muted">Weather and local answers are ready when you are.</div>
-                    </div>
                     <div class="rail-card">
                         <div class="rail-label">❝ DAILY SIGNAL</div>
                         <div class="rail-muted" style="margin-top:10px">A small step with Dhi today can make a big difference tomorrow.</div>
