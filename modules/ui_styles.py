@@ -135,7 +135,23 @@ section[data-testid="stSidebar"] .block-container { padding: 1.35rem 1.1rem 2rem
     backdrop-filter: blur(18px);
     box-shadow: 0 14px 36px var(--dhi-shadow);
 }
-[data-testid="stChatInput"] textarea { color: var(--dhi-tx) !important; }
+[data-testid="stBottom"],
+[data-testid="stBottomBlockContainer"],
+.stChatFloatingInputContainer {
+    background: color-mix(in srgb, var(--dhi-app-bg) 88%, transparent) !important;
+    border-top: 1px solid var(--dhi-glass-bd) !important;
+    box-shadow: 0 -12px 28px var(--dhi-shadow) !important;
+    backdrop-filter: blur(18px);
+}
+[data-testid="stChatInput"] textarea {
+    color: var(--dhi-tx) !important;
+    -webkit-text-fill-color: var(--dhi-tx) !important;
+}
+[data-testid="stChatInput"] textarea::placeholder {
+    color: var(--dhi-tx-dim) !important;
+    -webkit-text-fill-color: var(--dhi-tx-dim) !important;
+    opacity: 1 !important;
+}
 [data-testid="stChatInput"] button { color: var(--dhi-tx) !important; }
 
 /* ============ buttons — quiet, tactile controls =========================== */
