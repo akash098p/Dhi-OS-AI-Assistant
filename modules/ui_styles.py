@@ -488,7 +488,17 @@ _CSS_THEME = """
 .core-emblem::after { inset: -25px; border: 1px solid rgba(0, 220, 255, .12); animation: dhiEnergy 2.6s .8s ease-in-out infinite; }
 .orbit-satellite { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #d5ffff; box-shadow: 0 0 14px #00d9ff; animation: dhiSatellite 6s linear infinite; }
 .orbit-satellite.s2 { animation-duration: 9s; animation-delay: -3s; }
-.core-status { margin-top: 7px; color: var(--dhi-accent); font: 600 .65rem 'JetBrains Mono', monospace; letter-spacing: 3px; }
+.core-status {
+    position: absolute;
+    top: calc(50% + 61px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    margin: 0;
+    color: var(--dhi-accent);
+    font: 600 .65rem 'JetBrains Mono', monospace;
+    letter-spacing: 3px;
+}
 .hero-side-note { position: absolute; top: 45%; width: 120px; color: var(--dhi-tx-dim); font: .61rem/1.7 'JetBrains Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase; }
 .hero-side-note::after { content: ""; display: block; width: 28px; height: 2px; margin-top: 8px; background: var(--dhi-accent); animation: dhiPulseLine 2.4s ease-in-out infinite; }
 .hero-side-note.left { left: 8%; }
