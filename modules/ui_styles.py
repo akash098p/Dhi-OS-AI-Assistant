@@ -119,6 +119,7 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .35rem; 
 
 /* ============ glass chat ============ */
 [data-testid="stChatMessage"] {
+    width: min(78%, 760px);
     background: var(--dhi-assist-bg);
     border: 1px solid var(--dhi-assist-bd);
     border-left: 3px solid var(--dhi-accent2);
@@ -126,14 +127,20 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .35rem; 
     padding: 14px 18px;
     box-shadow: 0 14px 34px var(--dhi-shadow);
     backdrop-filter: blur(18px);
-    margin: 8px 0;
+    margin: 8px auto 8px 0;
     animation: dhiMsgIn .32s ease-out;
 }
-[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageContent"][aria-label="Chat message from user"]) {
+    margin: 8px 0 8px auto;
     background: var(--dhi-user-bubble);
     border: 1px solid var(--dhi-glass-bd);
-    border-left: 3px solid var(--dhi-accent);
+    border-left: 1px solid var(--dhi-glass-bd);
+    border-right: 3px solid var(--dhi-accent);
     color: var(--dhi-user-tx);
+}
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageContent"][aria-label="Chat message from user"]) [data-testid="stMarkdownContainer"],
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageContent"][aria-label="Chat message from user"]) [data-testid="stCaptionContainer"] {
+    text-align: right;
 }
 [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {
     font-size: .98rem;
@@ -151,6 +158,9 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .35rem; 
     color: var(--dhi-tx-dim);
     background: var(--dhi-glass);
     border-radius: 0 10px 10px 0;
+}
+@media (max-width: 700px) {
+    [data-testid="stChatMessage"] { width: 90%; }
 }
 
 /* ============ chat input ============ */
