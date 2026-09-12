@@ -91,6 +91,10 @@ section[data-testid="stSidebar"] {
 }
 section[data-testid="stSidebar"] * { color: var(--dhi-tx); }
 section[data-testid="stSidebar"] .block-container { padding: .65rem .55rem 1rem; }
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .35rem; }
+[data-testid="stSidebar"] .stToggle { margin: 0 !important; }
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p { font-size: .68rem !important; }
+.side-control-label { color: var(--dhi-accent); font: .57rem 'JetBrains Mono', monospace; letter-spacing: 2px; margin: 13px 8px 2px; text-transform: uppercase; }
 [data-testid="stAppViewContainer"] > .main .block-container {
     max-width: 1500px;
     padding: 1rem 3.25rem 4rem;
@@ -389,8 +393,8 @@ _CSS_THEME = """
 
 /* ============ reference-style core workspace ============================== */
 .core-hero {
-    min-height: 350px;
-    margin: 14px 0 18px;
+    min-height: 275px;
+    margin: 8px 0 10px;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -428,11 +432,11 @@ _CSS_THEME = """
     transform: perspective(180px) rotateX(12deg);
 }
 .hero-copy, .core-orbit { position: relative; z-index: 1; }
-.hero-copy { text-align: center; margin-top: 18px; }
+.hero-copy { text-align: center; margin-top: 4px; }
 .hero-kicker { color: var(--dhi-accent2); font: 600 .65rem 'JetBrains Mono', monospace; letter-spacing: 3px; text-transform: uppercase; }
 .hero-copy h1 { margin: 8px 0 4px; font-size: 1.6rem; letter-spacing: .4px; }
 .hero-copy p { margin: 0; color: var(--dhi-tx-dim); font-size: .85rem; }
-.core-orbit { width: 210px; height: 210px; display: grid; place-items: center; }
+.core-orbit { width: 170px; height: 170px; display: grid; place-items: center; }
 .core-orbit::before, .core-orbit::after {
     content: ""; position: absolute; border: 1px solid rgba(45, 205, 255, .72); border-radius: 50%;
 }
@@ -443,7 +447,7 @@ _CSS_THEME = """
 .orbit-ring::before { top: 18px; left: 24px; }
 .orbit-ring::after { right: 16px; bottom: 24px; }
 .core-emblem {
-    width: 94px; height: 94px; display: grid; place-items: center; border-radius: 50%;
+    width: 78px; height: 78px; display: grid; place-items: center; border-radius: 50%;
     color: #eaffff; font: 700 1.45rem 'Michroma', sans-serif; letter-spacing: 5px;
     background: radial-gradient(circle at 32% 26%, #b8f8ff, #087fc1 34%, #031e3e 73%);
     border: 2px solid rgba(151, 242, 255, .82);
@@ -587,10 +591,11 @@ _CSS_THEME = """
     background: var(--dhi-glass); border-radius: 8px;
     border: 1px solid var(--dhi-glass-bd);
 }
-.empty-state { text-align: center; padding: 34px 10px; color: var(--dhi-tx-dim); }
-.empty-icon { font-size: 2.5rem; margin-bottom: 6px; }
+.empty-state { text-align: center; padding: 10px 10px 12px; color: var(--dhi-tx-dim); }
+.empty-icon { font-size: 1.8rem; margin-bottom: 2px; }
 .empty-state h3 { color: var(--dhi-tx); }
-.empty-tips { font-size: .88rem; color: var(--dhi-tx-faint); margin-top: 12px; line-height: 1.9; font-family: 'JetBrains Mono', monospace; }
+.empty-state p { margin: 4px 0; font-size: .78rem; }
+.empty-tips { font-size: .72rem; color: var(--dhi-tx-faint); margin-top: 5px; line-height: 1.45; font-family: 'JetBrains Mono', monospace; }
 .footer { text-align: center; color: var(--dhi-tx-faint); font-size: .78rem; padding: 20px 0 30px; }
 [data-testid="stToast"] { backdrop-filter: blur(12px); }
 
