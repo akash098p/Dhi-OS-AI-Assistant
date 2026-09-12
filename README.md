@@ -12,6 +12,7 @@
 ---
 
 ## ✨ What's new in v3.0 (DHI OS)
+<img width="1586" height="992" alt="ChatGPT Image Sep 12, 2026, 08_25_53 PM" src="https://github.com/user-attachments/assets/1de24cdf-c99a-4777-aa25-b0420cd063c0" />
 
 | Area | Before | Now |
 |---|---|---|
