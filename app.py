@@ -304,21 +304,26 @@ with st.sidebar:
         uptime_sec=uptime_sec,
     )
 
-    with st.expander("Control center", expanded=False):
-        st.radio(
-            "Theme", ui_styles.theme_names(), key="set_theme", horizontal=True,
-            label_visibility="collapsed", format_func=ui_styles.theme_label,
-        )
-        st.toggle("Speak replies", key="set_voice")
-        st.toggle("Replay audio", key="set_audio_player")
-        st.toggle("Hands-free mic", key="set_handsfree")
-        st.toggle("Microphone", key="set_mic")
-        st.toggle("Strip wake word", key="set_wake")
-        st.selectbox("Understand language", list(speech.RECOGNITION_LANGUAGES), key="set_rec_lang")
-        st.selectbox("Voice language", list(speech.TTS_LANGUAGES), key="set_tts_lang")
-        city_in = st.text_input("Weather city", value=st.session_state.default_city or "")
-        if city_in.strip():
-            st.session_state.default_city = city_in.strip()
+    st.markdown('<div class="side-control-label">Control</div>', unsafe_allow_html=True)
+    st.radio(
+        "Theme", ui_styles.theme_names(), key="set_theme", horizontal=True,
+        label_visibility="collapsed", format_func=ui_styles.theme_label,
+    )
+    st.toggle("Speak replies", key="set_voice")
+    st.toggle("Replay audio", key="set_audio_player")
+    st.toggle("Hands-free mic", key="set_handsfree")
+    st.toggle("Microphone", key="set_mic")
+    st.toggle("Strip wake word", key="set_wake")
+    st.selectbox("Understand language", list(speech.RECOGNITION_LANGUAGES), key="set_rec_lang")
+    st.selectbox("Voice language", list(speech.TTS_LANGUAGES), key="set_tts_lang")
+    city_in = st.text_input("Weather city", value=st.session_state.default_city or "")
+    if city_in.strip():
+        st.session_state.default_city = city_in.strip()
+
+    ui_styles.render_section("🎙️ Voice")
+    voice_panel()
+    if st.session_state.timers:
+        timers_fragment()
 
     if st.button("Clear conversation", use_container_width=True):
         st.session_state.messages = []
@@ -380,11 +385,6 @@ with conversation_col:
             st.markdown(msg["content"])
             ts = msg.get("ts", "")
             st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
-
-    ui_styles.render_section("🎙️ Voice console")
-    voice_panel()
-    if st.session_state.timers:
-        timers_fragment()
 
 with rail_col:
     ui_styles.render_workspace_rail(
