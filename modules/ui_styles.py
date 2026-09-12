@@ -611,7 +611,7 @@ _CSS_THEME = """
 
 /* ==== core ignition sequence ============================================== */
 .boot-overlay {
-    position: fixed; inset: 0; z-index: 2147482000;
+    position: fixed; inset: 0; z-index: 2147483647 !important;
     background:
         radial-gradient(circle at 50% 42%, rgba(0, 208, 255, .20), transparent 18%),
         radial-gradient(ellipse at 50% 100%, rgba(0, 133, 196, .18), transparent 52%),
