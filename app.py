@@ -294,73 +294,39 @@ def timers_fragment() -> None:
 # --------------------------------------------------------------------------- #
 with st.sidebar:
     ui_styles.render_mini_hero(st.session_state.user_name)
-
-    ui_styles.render_section("🎨 Appearance")
-    st.radio(
-        "Theme", ui_styles.theme_names(), key="set_theme", horizontal=True,
-        label_visibility="collapsed", format_func=ui_styles.theme_label,
-    )
-
-    ui_styles.render_section("🛰️ Core diagnostics")
     uptime_sec = int((dt.datetime.now() - st.session_state.session_started).total_seconds())
-    ui_styles.render_diagnostics(
+    ui_styles.render_sidebar_nav()
+    ui_styles.render_sidebar_session(
         session=st.session_state.session_id,
-        uptime_sec=uptime_sec,
         commands=st.session_state.command_count,
-        mic=st.session_state.mic_state,
-        lang=st.session_state.set_rec_lang,
-        voice=st.session_state.set_voice,
-        last=st.session_state.last_cmd,
+        notes=len(st.session_state.notes),
+        timers=len(st.session_state.timers),
+        uptime_sec=uptime_sec,
     )
 
-    ui_styles.render_section("⚙️ Settings")
-    st.toggle("🔊 Speak replies aloud", key="set_voice")
-    st.toggle("🎧 Show replay player in bubbles", key="set_audio_player")
-    st.toggle("🪄 Hands-free mic (auto-send on pause)", key="set_handsfree",
-              help="Finalizes each spoken sentence automatically — no clicking needed.")
-    st.toggle("🎙️ Microphone enabled", key="set_mic")
-    st.toggle("🧹 Strip wake word (“Dhi”)", key="set_wake",
-              help="Also strips “hey dhi”, “ok dhi” — and her old codename “alexa”.")
-    st.selectbox("🧠 Understand language", list(speech.RECOGNITION_LANGUAGES),
-                 key="set_rec_lang")
-    st.selectbox("🗣️ Voice language", list(speech.TTS_LANGUAGES), key="set_tts_lang")
+    with st.expander("Control center", expanded=False):
+        st.radio(
+            "Theme", ui_styles.theme_names(), key="set_theme", horizontal=True,
+            label_visibility="collapsed", format_func=ui_styles.theme_label,
+        )
+        st.toggle("Speak replies", key="set_voice")
+        st.toggle("Replay audio", key="set_audio_player")
+        st.toggle("Hands-free mic", key="set_handsfree")
+        st.toggle("Microphone", key="set_mic")
+        st.toggle("Strip wake word", key="set_wake")
+        st.selectbox("Understand language", list(speech.RECOGNITION_LANGUAGES), key="set_rec_lang")
+        st.selectbox("Voice language", list(speech.TTS_LANGUAGES), key="set_tts_lang")
+        city_in = st.text_input("Weather city", value=st.session_state.default_city or "")
+        if city_in.strip():
+            st.session_state.default_city = city_in.strip()
 
-    city_in = st.text_input(
-        "🌐 Default weather city",
-        value=st.session_state.default_city or "",
-        placeholder="Auto-detect (via IP)",
-    )
-    if city_in.strip():
-        st.session_state.default_city = city_in.strip()
-
-    ui_styles.render_section("📝 Quick notes")
-    notes = st.session_state.notes
-    if notes:
-        st.caption(f"{len(notes)} saved — say “show my notes” anytime")
-        for note in notes[-5:]:
-            st.markdown(f"<div class='note-chip'>📝 {note}</div>", unsafe_allow_html=True)
-    else:
-        st.caption("Say “take a note that buy milk” to save one.")
-
-    ui_styles.render_section("📊 This session")
-    uptime = int((dt.datetime.now() - st.session_state.session_started).total_seconds() // 60)
-    ui_styles.render_stats(
-        st.session_state.command_count, len(st.session_state.notes),
-        len(st.session_state.timers), uptime,
-    )
-
-    ui_styles.render_section("✨ What I can do")
-    ui_styles.render_capability_list()
-
-    st.markdown("")
-    col_a, col_b = st.columns(2)
-    if col_a.button("🗑️ Clear chat", use_container_width=True):
+    if st.button("Clear conversation", use_container_width=True):
         st.session_state.messages = []
         st.session_state.autoplay_html = ""
         st.rerun()
     if st.session_state.messages:
-        col_b.download_button(
-            "📥 Export chat", data=_transcript_markdown(),
+        st.download_button(
+            "Export conversation", data=_transcript_markdown(),
             file_name=f"dhi_chat_{dt.datetime.now():%Y%m%d_%H%M}.md",
             mime="text/markdown", use_container_width=True,
         )
