@@ -86,12 +86,17 @@ code, pre {
 section[data-testid="stSidebar"] {
     background: var(--dhi-sidebar);
     border-right: 1px solid var(--dhi-sidebar-bd);
+    min-width: 184px;
+    max-width: 184px;
 }
 section[data-testid="stSidebar"] * { color: var(--dhi-tx); }
-section[data-testid="stSidebar"] .block-container { padding: 1.35rem 1.1rem 2rem; }
+section[data-testid="stSidebar"] .block-container { padding: .65rem .55rem 1rem; }
 [data-testid="stAppViewContainer"] > .main .block-container {
     max-width: 1500px;
     padding: 1rem 3.25rem 4rem;
+}
+[data-testid="stMainBlockContainer"] {
+    padding-top: 1rem !important;
 }
 [data-testid="stVerticalBlock"] { position: relative; z-index: 1; }
 
@@ -185,6 +190,7 @@ section[data-testid="stSidebar"] .block-container { padding: 1.35rem 1.1rem 2rem
 .stButton > button[kind="primary"]:hover { color: #06101a; }
 @media (max-width: 900px) {
     [data-testid="stAppViewContainer"] > .main .block-container { padding: .75rem 1rem 3rem; }
+    [data-testid="stMainBlockContainer"] { padding-top: .75rem !important; }
     .cmdbar { padding: 14px; gap: 8px; }
     .cmdbar-chip:nth-of-type(n+4) { display: none; }
 }
@@ -371,6 +377,15 @@ _CSS_THEME = """
     font-family: 'JetBrains Mono', monospace; font-size: .92rem; font-weight: 700;
     color: var(--dhi-gold); letter-spacing: 2px; text-shadow: 0 0 12px var(--dhi-gold);
 }
+.cmdbar-logo { white-space: nowrap; }
+.cmdbar-hello { display: grid; gap: 2px; min-width: 120px; }
+.cmdbar-hello b { color: var(--dhi-tx); font-size: .76rem; font-weight: 500; }
+.cmdbar-hello small { color: var(--dhi-tx-dim); font-size: .59rem; }
+.cmdbar-metrics { display: flex; align-items: stretch; gap: 0; margin-left: auto; }
+.cmdbar-metric { min-width: 72px; padding: 0 12px; border-left: 1px solid var(--dhi-glass-bd); text-align: center; }
+.cmdbar-metric span { display: block; color: var(--dhi-tx-dim); font: .55rem 'JetBrains Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+.cmdbar-metric b { color: var(--dhi-tx); font: 600 .67rem 'JetBrains Mono', monospace; }
+.cmdbar-date { color: var(--dhi-tx-dim); font: .58rem 'JetBrains Mono', monospace; text-align: right; }
 
 /* ============ reference-style core workspace ============================== */
 .core-hero {
@@ -449,6 +464,15 @@ _CSS_THEME = """
 .rail-muted { color: var(--dhi-tx-dim); font-size: .75rem; line-height: 1.45; }
 .rail-status { display: flex; justify-content: space-between; padding: 7px 0; color: var(--dhi-tx-dim); font-size: .75rem; border-bottom: 1px solid rgba(126, 208, 238, .10); }
 .rail-status b { color: var(--dhi-accent); font-family: 'JetBrains Mono', monospace; font-size: .65rem; }
+.side-nav { display: grid; gap: 3px; margin: 14px 0 12px; }
+.side-nav-group { color: var(--dhi-accent); font: .57rem 'JetBrains Mono', monospace; letter-spacing: 2px; margin: 10px 8px 5px; text-transform: uppercase; }
+.side-nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 7px; color: var(--dhi-tx-dim) !important; font-size: .73rem; }
+.side-nav-item.active { color: var(--dhi-tx) !important; background: linear-gradient(90deg, rgba(0, 190, 255, .22), rgba(0, 190, 255, .04)); border-left: 2px solid var(--dhi-accent2); }
+.side-nav-item span { width: 15px; text-align: center; color: var(--dhi-accent2) !important; }
+.side-nav-rule { height: 1px; margin: 9px 8px; background: var(--dhi-glass-bd); }
+.side-session { border: 1px solid var(--dhi-panel-bd); border-radius: 9px; padding: 9px; margin-top: 10px; font: .62rem 'JetBrains Mono', monospace; }
+.side-session-row { display: flex; justify-content: space-between; padding: 3px 0; color: var(--dhi-tx-dim); }
+.side-session-row b { color: var(--dhi-tx); }
 
 /* ============ sidebar identity ============ */
 .mini-hero {
@@ -673,7 +697,7 @@ def render_boot_overlay() -> None:
 def render_topbar(uptime_sec: int = 0, session: str = "------",
                   user_name: str | None = None, mic_state: str = "STANDBY",
                   commands: int = 0) -> None:
-    """Glass command bar — identity, live status chips and clock."""
+    """Reference-style telemetry header with only essential status."""
     now = dt.datetime.now().strftime("%H:%M:%S")
     who = user_name or "Operator"
     st.markdown(
@@ -681,14 +705,16 @@ def render_topbar(uptime_sec: int = 0, session: str = "------",
         <div class="cmdbar">
           <div class="cmdbar-logo">◈ DHI<span class="cmdbar-ver">&nbsp;OS v3.0</span></div>
           <span class="cmdbar-dot"></span>
-          <span class="cmdbar-chip">online</span>
-          <span class="cmdbar-chip">hello, {who}</span>
-          <span class="cmdbar-chip">mic · {mic_state}</span>
-          <span class="cmdbar-chip">{commands} cmds</span>
-          <span class="cmdbar-chip">up {_fmt_hhmmss(uptime_sec)}</span>
-          <span class="cmdbar-spacer"></span>
-          <span class="cmdbar-chip">session #{session}</span>
-          <span class="cmdbar-time">{now}</span>
+                    <span class="cmdbar-chip">ONLINE</span>
+                    <div class="cmdbar-hello"><b>Hello, {who}</b><small>Always here for you</small></div>
+                    <div class="cmdbar-metrics">
+                        <div class="cmdbar-metric"><span>Mic</span><b>{mic_state.title()}</b></div>
+                        <div class="cmdbar-metric"><span>Lang</span><b>English</b></div>
+                        <div class="cmdbar-metric"><span>Commands</span><b>{commands}</b></div>
+                        <div class="cmdbar-metric"><span>Uptime</span><b>{_fmt_hhmmss(uptime_sec)}</b></div>
+                        <div class="cmdbar-metric"><span>Session</span><b>#{session}</b></div>
+                    </div>
+                    <div class="cmdbar-date"><strong class="cmdbar-time">{now}</strong><br>Thu, 11 Sep 2026</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -766,6 +792,46 @@ def render_mini_hero(user_name: str | None = None) -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_sidebar_nav() -> None:
+        """Render the minimal navigation rail shown in the reference product UI."""
+        st.markdown(
+                """
+                <nav class="side-nav">
+                    <div class="side-nav-group">◉ System</div>
+                    <div class="side-nav-item active"><span>⌂</span>Core</div>
+                    <div class="side-nav-item"><span>☷</span>Conversation</div>
+                    <div class="side-nav-item"><span>▦</span>Memory</div>
+                    <div class="side-nav-item"><span>⚒</span>Tools</div>
+                    <div class="side-nav-item"><span>♩</span>Voice</div>
+                    <div class="side-nav-item"><span>⚙</span>System</div>
+                    <div class="side-nav-rule"></div>
+                    <div class="side-nav-group">Control</div>
+                    <div class="side-nav-item"><span>◉</span>Appearance</div>
+                    <div class="side-nav-item"><span>◎</span>Language</div>
+                    <div class="side-nav-item"><span>♩</span>Microphone</div>
+                    <div class="side-nav-item"><span>⚙</span>Behaviour</div>
+                </nav>
+                """,
+                unsafe_allow_html=True,
+        )
+
+
+def render_sidebar_session(session: str, commands: int, notes: int,
+                                                     timers: int, uptime_sec: int) -> None:
+        st.markdown(
+                f"""
+                <div class="side-session">
+                    <div class="side-nav-group" style="margin:0 0 5px">Session</div>
+                    <div class="side-session-row"><span>Commands</span><b>{commands}</b></div>
+                    <div class="side-session-row"><span>Notes</span><b>{notes}</b></div>
+                    <div class="side-session-row"><span>Timers</span><b>{timers}</b></div>
+                    <div class="side-session-row"><span>Uptime</span><b>{_fmt_hhmmss(uptime_sec)}</b></div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+        )
 def render_listening_orb(active: bool, label: str | None = None) -> None:
     """Voice core orb with animated equalizer while listening."""
     state = "orb-active" if active else ""
