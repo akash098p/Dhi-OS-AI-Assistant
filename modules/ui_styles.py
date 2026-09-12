@@ -39,6 +39,10 @@ body::after {
 @keyframes dhiMsgIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
 @keyframes dhiBreathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: .75; } }
 @keyframes dhiShine { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+@keyframes dhiOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes dhiOrbitReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+@keyframes dhiStarDrift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-28px, 18px, 0); } }
+@keyframes dhiPulseLine { 0%, 100% { opacity: .35; transform: scaleX(.72); } 50% { opacity: 1; transform: scaleX(1); } }
 
 /* ============ header & sidebar controls ====================================
    FIX: never hide <header> itself — the sidebar reopen control lives there.
@@ -368,6 +372,84 @@ _CSS_THEME = """
     color: var(--dhi-gold); letter-spacing: 2px; text-shadow: 0 0 12px var(--dhi-gold);
 }
 
+/* ============ reference-style core workspace ============================== */
+.core-hero {
+    min-height: 350px;
+    margin: 14px 0 18px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(71, 191, 237, .22);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 50% 48%, rgba(0, 207, 255, .16), transparent 21%),
+        radial-gradient(ellipse at 50% 115%, rgba(0, 152, 220, .34), transparent 49%),
+        radial-gradient(circle at 18% 28%, rgba(0, 196, 255, .10) 0 1px, transparent 2px),
+        radial-gradient(circle at 82% 26%, rgba(0, 196, 255, .14) 0 1px, transparent 2px),
+        linear-gradient(180deg, rgba(1, 16, 30, .93), rgba(2, 14, 25, .98));
+    box-shadow: inset 0 0 70px rgba(0, 162, 222, .12), 0 18px 50px rgba(0, 0, 0, .25);
+}
+.core-hero::before {
+    content: "";
+    position: absolute;
+    inset: -30% -8% 8%;
+    background-image: radial-gradient(rgba(119, 224, 255, .72) 0 1px, transparent 1.5px);
+    background-size: 92px 76px;
+    opacity: .25;
+    animation: dhiStarDrift 22s linear infinite alternate;
+}
+.core-hero::after {
+    content: "";
+    position: absolute;
+    width: 72%;
+    height: 31%;
+    bottom: -14%;
+    border-radius: 50% 50% 0 0;
+    background: radial-gradient(ellipse at 50% 0%, #1f9ed2 0 1%, #073c67 8%, #031522 45%, #020910 72%);
+    box-shadow: 0 -12px 36px rgba(0, 194, 255, .22);
+    transform: perspective(180px) rotateX(12deg);
+}
+.hero-copy, .core-orbit { position: relative; z-index: 1; }
+.hero-copy { text-align: center; margin-top: 18px; }
+.hero-kicker { color: var(--dhi-accent2); font: 600 .65rem 'JetBrains Mono', monospace; letter-spacing: 3px; text-transform: uppercase; }
+.hero-copy h1 { margin: 8px 0 4px; font-size: 1.6rem; letter-spacing: .4px; }
+.hero-copy p { margin: 0; color: var(--dhi-tx-dim); font-size: .85rem; }
+.core-orbit { width: 210px; height: 210px; display: grid; place-items: center; }
+.core-orbit::before, .core-orbit::after {
+    content: ""; position: absolute; border: 1px solid rgba(45, 205, 255, .72); border-radius: 50%;
+}
+.core-orbit::before { inset: 11px; box-shadow: 0 0 20px rgba(0, 210, 255, .38), inset 0 0 16px rgba(0, 210, 255, .25); }
+.core-orbit::after { inset: -2px 27px; transform: rotate(55deg); border-color: rgba(103, 224, 255, .42); animation: dhiOrbit 12s linear infinite; }
+.orbit-ring { position: absolute; inset: 21px; border: 1px dashed rgba(110, 221, 255, .55); border-radius: 50%; animation: dhiOrbitReverse 18s linear infinite; }
+.orbit-ring::before, .orbit-ring::after { content: ""; position: absolute; width: 5px; height: 5px; background: var(--dhi-accent2); border-radius: 50%; box-shadow: 0 0 12px var(--dhi-accent2); }
+.orbit-ring::before { top: 18px; left: 24px; }
+.orbit-ring::after { right: 16px; bottom: 24px; }
+.core-emblem {
+    width: 94px; height: 94px; display: grid; place-items: center; border-radius: 50%;
+    color: #eaffff; font: 700 1.45rem 'Michroma', sans-serif; letter-spacing: 5px;
+    background: radial-gradient(circle at 32% 26%, #b8f8ff, #087fc1 34%, #031e3e 73%);
+    border: 2px solid rgba(151, 242, 255, .82);
+    box-shadow: 0 0 25px #00bfff, 0 0 75px rgba(0, 176, 255, .42), inset 0 0 22px rgba(209, 255, 255, .42);
+    animation: dhiBreathe 3s ease-in-out infinite;
+}
+.core-status { margin-top: 7px; color: var(--dhi-accent); font: 600 .65rem 'JetBrains Mono', monospace; letter-spacing: 3px; }
+.hero-side-note { position: absolute; top: 45%; width: 120px; color: var(--dhi-tx-dim); font: .61rem/1.7 'JetBrains Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase; }
+.hero-side-note::after { content: ""; display: block; width: 28px; height: 2px; margin-top: 8px; background: var(--dhi-accent); animation: dhiPulseLine 2.4s ease-in-out infinite; }
+.hero-side-note.left { left: 8%; }
+.hero-side-note.right { right: 8%; }
+.quick-launch { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 10px 0 18px; }
+.quick-launch .stButton > button { min-height: 46px; border-color: rgba(31, 183, 233, .34); background: rgba(3, 27, 45, .72); }
+.workspace-rail { display: grid; gap: 12px; align-content: start; }
+.rail-card { padding: 15px; border: 1px solid rgba(50, 184, 230, .28); border-radius: 12px; background: rgba(3, 25, 40, .78); box-shadow: inset 0 0 24px rgba(0, 180, 255, .05); }
+.rail-label { color: var(--dhi-accent2); font: .62rem 'JetBrains Mono', monospace; letter-spacing: 2px; text-transform: uppercase; }
+.rail-value { color: var(--dhi-tx); font-size: 1.45rem; font-weight: 700; margin-top: 8px; }
+.rail-muted { color: var(--dhi-tx-dim); font-size: .75rem; line-height: 1.45; }
+.rail-status { display: flex; justify-content: space-between; padding: 7px 0; color: var(--dhi-tx-dim); font-size: .75rem; border-bottom: 1px solid rgba(126, 208, 238, .10); }
+.rail-status b { color: var(--dhi-accent); font-family: 'JetBrains Mono', monospace; font-size: .65rem; }
+
 /* ============ sidebar identity ============ */
 .mini-hero {
     display: flex; align-items: center; gap: 10px; padding: 10px 12px;
@@ -611,6 +693,61 @@ def render_topbar(uptime_sec: int = 0, session: str = "------",
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_core_hero(mic_state: str = "STANDBY") -> None:
+        """Render the cinematic DHI core hero from the reference layout."""
+        status = "LISTENING..." if mic_state != "STANDBY" else "READY TO HELP"
+        st.markdown(
+                f"""
+                <section class="core-hero">
+                    <div class="hero-side-note left">THINK<br>UNDERSTAND<br>PLAN<br>EXECUTE<br>FOR YOU</div>
+                    <div class="hero-side-note right">A SMARTER<br>DAY BEGINS<br>WITH A<br>SIMPLE HELLO</div>
+                    <div class="core-orbit">
+                        <div class="orbit-ring"></div>
+                        <div class="core-emblem">DHI</div>
+                        <div class="core-status">{status}</div>
+                    </div>
+                    <div class="hero-copy">
+                        <div class="hero-kicker">DHI OS · INTELLIGENCE CORE</div>
+                        <h1>How can I help you today?</h1>
+                        <p>Talk to me, type a command, or use quick actions below.</p>
+                    </div>
+                </section>
+                """,
+                unsafe_allow_html=True,
+        )
+
+
+def render_workspace_rail(uptime_sec: int, commands: int, session: str,
+                                                    city: str, mic_state: str) -> None:
+        """Render compact ambient context cards beside the conversation."""
+        weather_city = city or "Your city"
+        st.markdown(
+                f"""
+                <aside class="workspace-rail">
+                    <div class="rail-card">
+                        <div class="rail-label">◌ LOCAL CONTEXT</div>
+                        <div class="rail-value">{weather_city}</div>
+                        <div class="rail-muted">Weather and local answers are ready when you are.</div>
+                    </div>
+                    <div class="rail-card">
+                        <div class="rail-label">❝ DAILY SIGNAL</div>
+                        <div class="rail-muted" style="margin-top:10px">A small step with Dhi today can make a big difference tomorrow.</div>
+                        <div class="rail-label" style="margin-top:12px">— DHI</div>
+                    </div>
+                    <div class="rail-card">
+                        <div class="rail-label">SYSTEM STATUS</div>
+                        <div class="rail-status"><span>Core</span><b>ONLINE</b></div>
+                        <div class="rail-status"><span>Voice</span><b>{mic_state}</b></div>
+                        <div class="rail-status"><span>Commands</span><b>{commands}</b></div>
+                        <div class="rail-status"><span>Uptime</span><b>{_fmt_hhmmss(uptime_sec)}</b></div>
+                        <div class="rail-status"><span>Session</span><b>#{session}</b></div>
+                    </div>
+                </aside>
+                """,
+                unsafe_allow_html=True,
+        )
 
 
 def render_mini_hero(user_name: str | None = None) -> None:

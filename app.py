@@ -377,6 +377,8 @@ ui_styles.render_topbar(
     commands=st.session_state.command_count,
 )
 
+ui_styles.render_core_hero(st.session_state.mic_state)
+
 # ---- quick launch -------------------------------------------------------------
 ui_styles.render_section("⚡ Quick launch")
 QUICK_ACTIONS = [
@@ -386,36 +388,46 @@ QUICK_ACTIONS = [
     ("📰 News", "show me the news"),
     ("🧮 Math", "calculate 15 percent of 2400"),
     ("🛰️ Status", "system status"),
-    ("😄 Joke", "tell me a joke"),
-    ("💡 Fact", "tell me a fun fact"),
-    ("💬 Quote", "give me an inspiring quote"),
-    ("🪙 Coin", "flip a coin"),
-    ("🎲 Dice", "roll a dice"),
-    ("❓ Help", "what can you do"),
+    ("❓ More", "what can you do"),
 ]
-for row_start in range(0, len(QUICK_ACTIONS), 6):
-    cols = st.columns(6)
-    for col, (label, cmd) in zip(cols, QUICK_ACTIONS[row_start:row_start + 6]):
-        if col.button(label, key=f"qa_{label}", use_container_width=True):
-            handle_command(cmd, source="quick")
+cols = st.columns(7)
+for col, (label, cmd) in zip(cols, QUICK_ACTIONS):
+    if col.button(label, key=f"qa_{label}", use_container_width=True):
+        handle_command(cmd, source="quick")
 
-# ---- conversation messages (rendered before columns so chat_input
-#      can live at the top level) ----------------------------------------------
-ui_styles.render_section("💬 Conversation")
-_drain_voice()
+# ---- workspace: conversation + ambient status rail --------------------------
+conversation_col, rail_col = st.columns([3.7, 1.25], gap="large")
 
-if not st.session_state.messages:
-    ui_styles.render_empty_state()
+with conversation_col:
+    ui_styles.render_section("💬 Recent conversation")
+    _drain_voice()
 
-for msg in st.session_state.messages:
-    avatar = "🧑‍🚀" if msg["role"] == "user" else "🌸"
-    with st.chat_message(msg["role"], avatar=avatar):
-        if (msg["role"] == "assistant" and msg.get("audio")
-                and st.session_state.set_audio_player):
-            st.audio(msg["audio"], format="audio/mp3")
-        st.markdown(msg["content"])
-        ts = msg.get("ts", "")
-        st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
+    if not st.session_state.messages:
+        ui_styles.render_empty_state()
+
+    for msg in st.session_state.messages:
+        avatar = "🧑‍🚀" if msg["role"] == "user" else "🌸"
+        with st.chat_message(msg["role"], avatar=avatar):
+            if (msg["role"] == "assistant" and msg.get("audio")
+                    and st.session_state.set_audio_player):
+                st.audio(msg["audio"], format="audio/mp3")
+            st.markdown(msg["content"])
+            ts = msg.get("ts", "")
+            st.caption(f"❮ DHI · CORE ❯ {ts}" if msg["role"] == "assistant" else ts)
+
+    ui_styles.render_section("🎙️ Voice console")
+    voice_panel()
+    if st.session_state.timers:
+        timers_fragment()
+
+with rail_col:
+    ui_styles.render_workspace_rail(
+        uptime_sec=uptime_sec,
+        commands=st.session_state.command_count,
+        session=st.session_state.session_id,
+        city=st.session_state.default_city,
+        mic_state=st.session_state.mic_state,
+    )
 
 # ---- chat input (MUST be top-level, not inside a column) ----------------------
 prompt = st.chat_input(
@@ -432,12 +444,6 @@ if prompt:
         time.sleep(0.25)
     ph.empty()
     handle_command(prompt, source="text")
-
-# ---- voice console, below conversation ---------------------------------------
-ui_styles.render_section("🎙️ Voice console")
-voice_panel()
-if st.session_state.timers:
-    timers_fragment()
 
 # ---- voice replies (auto-play once) -------------------------------------------
 if st.session_state.autoplay_html:
