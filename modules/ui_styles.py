@@ -86,14 +86,22 @@ code, pre {
 section[data-testid="stSidebar"] {
     background: var(--dhi-sidebar);
     border-right: 1px solid var(--dhi-sidebar-bd);
-    min-width: 184px;
-    max-width: 184px;
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
 }
-section[data-testid="stSidebar"] * { color: var(--dhi-tx); }
-section[data-testid="stSidebar"] .block-container { padding: .65rem .55rem 1rem; }
+section[data-testid="stSidebar"] > div:first-child { width: 300px !important; }
+section[data-testid="stSidebar"] * { color: var(--dhi-tx); box-sizing: border-box; }
+section[data-testid="stSidebar"] .block-container { width: 100%; padding: .85rem 1rem 1.25rem; }
 section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .35rem; }
 [data-testid="stSidebar"] .stToggle { margin: 0 !important; }
-[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p { font-size: .68rem !important; }
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p { font-size: .72rem !important; white-space: normal; }
+[data-testid="stSidebar"] [data-testid="stSelectbox"],
+[data-testid="stSidebar"] [data-testid="stTextInput"],
+[data-testid="stSidebar"] .stButton,
+[data-testid="stSidebar"] .stDownloadButton { width: 100%; }
+[data-testid="stSidebar"] [data-baseweb="select"] > div { min-height: 40px; }
+[data-testid="stSidebar"] [data-testid="stToggle"] label { min-height: 30px; }
 .side-control-label { color: var(--dhi-accent); font: .57rem 'JetBrains Mono', monospace; letter-spacing: 2px; margin: 13px 8px 2px; text-transform: uppercase; }
 [data-testid="stAppViewContainer"] > .main .block-container {
     max-width: 1500px;
@@ -193,6 +201,8 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .35rem; 
 }
 .stButton > button[kind="primary"]:hover { color: #06101a; }
 @media (max-width: 900px) {
+    section[data-testid="stSidebar"] { width: 280px !important; min-width: 280px !important; max-width: 280px !important; }
+    section[data-testid="stSidebar"] > div:first-child { width: 280px !important; }
     [data-testid="stAppViewContainer"] > .main .block-container { padding: .75rem 1rem 3rem; }
     [data-testid="stMainBlockContainer"] { padding-top: .75rem !important; }
     .cmdbar { padding: 14px; gap: 8px; }
