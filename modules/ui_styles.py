@@ -47,6 +47,7 @@ body::after {
 @keyframes dhiScan { 0% { transform: translateY(-130%); opacity: 0; } 18%, 70% { opacity: .8; } 100% { transform: translateY(330%); opacity: 0; } }
 @keyframes dhiEnergy { 0%, 100% { transform: scale(.84); opacity: .25; } 50% { transform: scale(1.22); opacity: .78; } }
 @keyframes dhiSatellite { from { transform: rotate(0deg) translateX(75px) rotate(0deg); } to { transform: rotate(360deg) translateX(75px) rotate(-360deg); } }
+@keyframes dhiInputGlow { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
 
 /* ============ header & sidebar controls ====================================
    FIX: never hide <header> itself — the sidebar reopen control lives there.
@@ -154,11 +155,40 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .35rem; 
 
 /* ============ chat input ============ */
 [data-testid="stChatInput"] > div {
+    position: relative;
+    isolation: isolate;
     background: var(--dhi-input-bg) !important;
     border: 1px solid var(--dhi-input-bd) !important;
     border-radius: 14px !important;
     backdrop-filter: blur(18px);
     box-shadow: 0 14px 36px var(--dhi-shadow);
+    transition: border-color .22s ease, box-shadow .22s ease;
+}
+[data-testid="stChatInput"] > div::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(90deg, transparent 0 22%, var(--dhi-accent2) 42%, var(--dhi-accent) 52%, transparent 72%);
+    background-size: 220% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: .34;
+    animation: dhiInputGlow 4s linear infinite;
+    pointer-events: none;
+}
+[data-testid="stChatInput"]:focus-within > div,
+[data-testid="stChatInput"]:has(textarea:not(:placeholder-shown)) > div {
+    border-color: var(--dhi-accent2) !important;
+    box-shadow: 0 0 0 1px rgba(103, 200, 255, .28), 0 0 24px rgba(0, 190, 255, .20), 0 14px 36px var(--dhi-shadow);
+}
+[data-testid="stChatInput"]:focus-within > div::before,
+[data-testid="stChatInput"]:has(textarea:not(:placeholder-shown)) > div::before {
+    opacity: 1;
+    animation-duration: 2.2s;
 }
 [data-testid="stBottom"],
 [data-testid="stBottomBlockContainer"],
