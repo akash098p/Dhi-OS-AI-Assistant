@@ -609,51 +609,55 @@ _CSS_THEME = """
 .footer { text-align: center; color: var(--dhi-tx-faint); font-size: .78rem; padding: 20px 0 30px; }
 [data-testid="stToast"] { backdrop-filter: blur(12px); }
 
-/* ==== boot sequence (cinematic dark — independent of theme) ==== */
+/* ==== core ignition sequence ============================================== */
 .boot-overlay {
     position: fixed; inset: 0; z-index: 2147482000;
     background:
-        radial-gradient(900px 480px at 50% 28%, rgba(124, 92, 255, .16), transparent 62%),
-        radial-gradient(700px 420px at 50% 78%, rgba(0, 209, 255, .10), transparent 60%),
-        repeating-linear-gradient(0deg, rgba(0, 209, 255, .10) 0 1px, transparent 1px 54px),
-        repeating-linear-gradient(90deg, rgba(124, 92, 255, .10) 0 1px, transparent 1px 54px),
-        #04060f;
+        radial-gradient(circle at 50% 42%, rgba(0, 208, 255, .20), transparent 18%),
+        radial-gradient(ellipse at 50% 100%, rgba(0, 133, 196, .18), transparent 52%),
+        linear-gradient(180deg, #02070d, #030d17 60%, #02060b);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    animation: dhiBootEnd 4.6s ease forwards;
+    animation: dhiBootEnd 3.8s cubic-bezier(.76, 0, .24, 1) forwards;
 }
 @keyframes dhiBootEnd {
     0% { opacity: 1; }
-    78% { opacity: 1; }
+    72% { opacity: 1; }
     100% { opacity: 0; visibility: hidden; pointer-events: none; }
 }
-.boot-inner { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 92vw; min-width: 300px; }
+.boot-inner { display: flex; flex-direction: column; align-items: center; gap: 13px; max-width: 92vw; min-width: 300px; }
+.boot-orbit { width: 164px; height: 164px; position: relative; display: grid; place-items: center; animation: dhiBootRise .9s ease-out both; }
+.boot-orbit::before, .boot-orbit::after { content: ""; position: absolute; border-radius: 50%; border: 1px solid rgba(0, 216, 255, .55); }
+.boot-orbit::before { inset: 7px; box-shadow: 0 0 32px rgba(0, 201, 255, .40), inset 0 0 22px rgba(0, 201, 255, .26); }
+.boot-orbit::after { inset: -8px 26px; border-style: dashed; animation: dhiOrbit 7s linear infinite; }
+.boot-orbit-ring { position: absolute; inset: 20px; border: 1px dashed rgba(127, 236, 255, .66); border-radius: 50%; animation: dhiOrbitReverse 10s linear infinite; }
+.boot-orbit-ring::before, .boot-orbit-ring::after { content: ""; position: absolute; width: 5px; height: 5px; border-radius: 50%; background: #74edff; box-shadow: 0 0 12px #00cfff; }
+.boot-orbit-ring::before { top: 12px; left: 20px; }
+.boot-orbit-ring::after { right: 12px; bottom: 20px; }
 .boot-core {
-    width: 108px; height: 108px; border-radius: 50%;
+    width: 76px; height: 76px; border-radius: 50%; position: relative; z-index: 1;
     display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle at 34% 30%, #cfe8ff, #3a2aa8 60%, #140b3c);
-    box-shadow: 0 0 46px rgba(0, 209, 255, .7), inset 0 0 22px rgba(255, 255, 255, .3);
-    font-family: 'Michroma', sans-serif; color: #fff; font-size: 2.1rem;
-    animation: dhiBootCore 1.1s ease-in-out infinite;
+    background: radial-gradient(circle at 34% 28%, #d8ffff, #087fc1 38%, #031e3e 76%);
+    box-shadow: 0 0 24px #00cfff, 0 0 58px rgba(0, 180, 255, .48), inset 0 0 18px rgba(255, 255, 255, .34);
+    font-family: 'Michroma', sans-serif; color: #fff; font-size: 1.25rem; letter-spacing: 3px;
+    animation: dhiBootCore 1.7s ease-in-out infinite;
 }
-@keyframes dhiBootCore { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
-.boot-title { font-family: 'Michroma', sans-serif; font-size: 1.5rem; letter-spacing: 5px; color: #e8ecf8; }
-.boot-ver { font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: #3dffa7; }
-.boot-sub { font-family: 'JetBrains Mono', monospace; font-size: .62rem; letter-spacing: 2.5px; color: #8fd3ff; text-transform: uppercase; }
-.boot-lines { display: grid; grid-template-columns: auto; gap: 5px; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: .74rem; color: #c3cbe6; }
-.boot-line { opacity: 0; }
-.boot-line span { color: #00d1ff; }
-.boot-line b { color: #3dffa7; }
-.boot-line:nth-child(1) { animation: dhiBootLine .5s .1s ease forwards; }
-.boot-line:nth-child(2) { animation: dhiBootLine .5s .55s ease forwards; }
-.boot-line:nth-child(3) { animation: dhiBootLine .5s 1.0s ease forwards; }
-.boot-line:nth-child(4) { animation: dhiBootLine .5s 1.45s ease forwards; }
-.boot-line:nth-child(5) { animation: dhiBootLine .5s 1.9s ease forwards; }
-.boot-line:nth-child(6) { animation: dhiBootLine .5s 2.35s ease forwards; }
-@keyframes dhiBootLine { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.boot-progress { width: 340px; height: 6px; max-width: 86vw; background: rgba(255, 255, 255, .07); border: 1px solid rgba(0, 209, 255, .4); }
-.boot-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #7c5cff, #00d1ff); box-shadow: 0 0 14px rgba(0, 209, 255, .7); animation: dhiBootFill 3.9s linear forwards; }
+@keyframes dhiBootCore { 0%, 100% { transform: scale(.96); } 50% { transform: scale(1.08); } }
+@keyframes dhiBootRise { from { opacity: 0; transform: translateY(18px) scale(.84); } to { opacity: 1; transform: none; } }
+.boot-title { font-family: 'Michroma', sans-serif; font-size: 1.3rem; letter-spacing: 5px; color: #e8fbff; animation: dhiBootText .7s .25s ease both; }
+.boot-ver { font-family: 'JetBrains Mono', monospace; font-size: .65rem; color: #56e0c0; }
+.boot-sub { font-family: 'JetBrains Mono', monospace; font-size: .58rem; letter-spacing: 3px; color: #74dfff; text-transform: uppercase; animation: dhiBootText .7s .45s ease both; }
+.boot-lines { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: .61rem; color: #8aaeba; }
+.boot-line { opacity: 0; animation: dhiBootLine .45s ease forwards; }
+.boot-line span { color: #67dfff; }.boot-line b { color: #56e0c0; }
+.boot-line:nth-child(1) { animation-delay: .7s; }.boot-line:nth-child(2) { animation-delay: .95s; }.boot-line:nth-child(3) { animation-delay: 1.2s; }
+@keyframes dhiBootText { from { opacity: 0; letter-spacing: 11px; } to { opacity: 1; letter-spacing: 5px; } }
+@keyframes dhiBootLine { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+.boot-wave { width: 280px; height: 22px; max-width: 82vw; background: repeating-linear-gradient(90deg, transparent 0 5px, rgba(0, 208, 255, .52) 6px 7px, transparent 8px 12px); mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); animation: dhiWave 1.1s ease-in-out infinite alternate; }
+@keyframes dhiWave { from { transform: scaleY(.35); opacity: .45; } to { transform: scaleY(1); opacity: 1; } }
+.boot-progress { width: 280px; height: 3px; max-width: 82vw; background: rgba(255, 255, 255, .08); }
+.boot-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #56e0c0, #67c8ff); box-shadow: 0 0 14px rgba(0, 209, 255, .7); animation: dhiBootFill 3.1s linear forwards; }
 @keyframes dhiBootFill { from { width: 0%; } to { width: 100%; } }
-.boot-pct { font-family: 'JetBrains Mono', monospace; font-size: .64rem; letter-spacing: 3px; color: #93a0c4; animation: dhiBootPulse 1.6s ease-in-out infinite; }
+.boot-pct { font-family: 'JetBrains Mono', monospace; font-size: .58rem; letter-spacing: 3px; color: #7593a0; animation: dhiBootPulse 1.4s ease-in-out infinite; }
 @keyframes dhiBootPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 """
 
@@ -689,19 +693,20 @@ def render_boot_overlay() -> None:
         """
         <div class="boot-overlay">
           <div class="boot-inner">
-            <div class="boot-core">DHI</div>
+                        <div class="boot-orbit">
+                            <div class="boot-orbit-ring"></div>
+                            <div class="boot-core">DHI</div>
+                        </div>
             <div class="boot-title">DHI&nbsp;OS <span class="boot-ver">v3.0</span></div>
-            <div class="boot-sub">Premium Edition</div>
+                        <div class="boot-sub">Neural interface · initializing</div>
             <div class="boot-lines">
-              <div class="boot-line"><span>&gt;</span> Neural core ........... <b>ONLINE</b></div>
-              <div class="boot-line"><span>&gt;</span> Audio subsystem ....... <b>CALIBRATED</b></div>
-              <div class="boot-line"><span>&gt;</span> Intent matrix ......... <b>LOADED</b></div>
-              <div class="boot-line"><span>&gt;</span> Skill modules ......... <b>25+ READY</b></div>
-              <div class="boot-line"><span>&gt;</span> Security handshake .... <b>VERIFIED</b></div>
-              <div class="boot-line"><span>&gt;</span> All systems ........... <b>NOMINAL</b></div>
+                            <div class="boot-line"><span>CORE</span> <b>ONLINE</b></div>
+                            <div class="boot-line"><span>VOICE</span> <b>READY</b></div>
+                            <div class="boot-line"><span>MEMORY</span> <b>SYNCED</b></div>
             </div>
-            <div class="boot-progress"><div class="boot-fill"></div></div>
-            <div class="boot-pct">INITIALIZING…</div>
+                        <div class="boot-wave"></div>
+                        <div class="boot-progress"><div class="boot-fill"></div></div>
+                        <div class="boot-pct">ESTABLISHING PRESENCE</div>
           </div>
         </div>
         """,
@@ -946,9 +951,3 @@ def render_empty_state() -> None:
     )
 
 
-def render_footer() -> None:
-    st.markdown(
-        '<div class="footer">DHI OS v3.0 · Premium Edition · Python + Streamlit · '
-        'Crafted with 💜 and a lot of ☕</div>',
-        unsafe_allow_html=True,
-    )
