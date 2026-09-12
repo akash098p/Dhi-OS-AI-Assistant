@@ -17,28 +17,24 @@ html, body, [class*="css"], .stApp, .stMarkdown, p, li, span {
 }
 body { background: transparent; }
 
-/* === luxe backdrop: layered gradients + drifting aurora orbs + scanlines === */
+/* === restrained command-deck backdrop ==================================== */
 .stApp {
     background: var(--dhi-app-bg);
     color: var(--dhi-tx);
 }
 body::before {
-    content: ""; position: fixed; inset: -22%; z-index: 0; pointer-events: none;
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background:
-        radial-gradient(42% 42% at 22% 28%, var(--dhi-aurora1), transparent 70%),
-        radial-gradient(50% 50% at 78% 60%, var(--dhi-aurora2), transparent 70%),
-        radial-gradient(36% 36% at 55% 88%, var(--dhi-aurora3), transparent 70%);
-    filter: blur(46px);
-    animation: dhiAurora 30s ease-in-out infinite;
+        linear-gradient(90deg, transparent 0 49.9%, rgba(255,255,255,.018) 50%, transparent 50.1%),
+        linear-gradient(0deg, transparent 0 49.9%, rgba(255,255,255,.014) 50%, transparent 50.1%),
+        radial-gradient(900px 520px at 78% -8%, var(--dhi-aurora2), transparent 72%),
+        radial-gradient(760px 440px at 18% 108%, var(--dhi-aurora1), transparent 72%);
+    background-size: 96px 96px, 96px 96px, auto, auto;
+    opacity: .72;
 }
 body::after {
-    content: ""; position: fixed; inset: 0; z-index: 2147483000; pointer-events: none;
-    background: var(--dhi-scan);
-}
-@keyframes dhiAurora {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(5%, -4%) scale(1.06); }
-    66% { transform: translate(-4%, 3%) scale(.97); }
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    border: 1px solid rgba(255,255,255,.035);
 }
 @keyframes dhiMsgIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
 @keyframes dhiBreathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: .75; } }
@@ -88,18 +84,23 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid var(--dhi-sidebar-bd);
 }
 section[data-testid="stSidebar"] * { color: var(--dhi-tx); }
-section[data-testid="stSidebar"] .block-container { padding-top: 1rem; }
+section[data-testid="stSidebar"] .block-container { padding: 1.35rem 1.1rem 2rem; }
+[data-testid="stAppViewContainer"] > .main .block-container {
+    max-width: 1500px;
+    padding: 1rem 3.25rem 4rem;
+}
+[data-testid="stVerticalBlock"] { position: relative; z-index: 1; }
 
 /* ============ glass chat ============ */
 [data-testid="stChatMessage"] {
     background: var(--dhi-assist-bg);
     border: 1px solid var(--dhi-assist-bd);
     border-left: 3px solid var(--dhi-accent2);
-    border-radius: 16px;
-    padding: 12px 16px;
-    box-shadow: 0 12px 32px var(--dhi-shadow);
-    backdrop-filter: blur(14px);
-    margin-bottom: 6px;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 14px 34px var(--dhi-shadow);
+    backdrop-filter: blur(18px);
+    margin: 8px 0;
     animation: dhiMsgIn .32s ease-out;
 }
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
@@ -130,31 +131,42 @@ section[data-testid="stSidebar"] .block-container { padding-top: 1rem; }
 [data-testid="stChatInput"] > div {
     background: var(--dhi-input-bg) !important;
     border: 1px solid var(--dhi-input-bd) !important;
-    border-radius: 16px !important;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 22px var(--dhi-shadow);
+    border-radius: 14px !important;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 14px 36px var(--dhi-shadow);
 }
 [data-testid="stChatInput"] textarea { color: var(--dhi-tx) !important; }
 [data-testid="stChatInput"] button { color: var(--dhi-tx) !important; }
 
-/* ============ buttons — angular luxe chips ============ */
+/* ============ buttons — quiet, tactile controls =========================== */
 .stButton > button, .stDownloadButton > button {
-    border-radius: 10px;
+    min-height: 42px;
+    border-radius: 9px;
     border: 1px solid var(--dhi-glass-bd);
-    background: var(--dhi-glass);
+    background: linear-gradient(180deg, var(--dhi-button-top), var(--dhi-button-bottom));
     color: var(--dhi-tx);
     font-weight: 600;
-    font-size: .86rem;
-    padding: 6px 14px;
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+    font-size: .84rem;
+    padding: 8px 14px;
     transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
 }
 .stButton > button:hover, .stDownloadButton > button:hover {
     transform: translateY(-2px);
     border-color: var(--dhi-accent2);
     box-shadow: 0 10px 26px var(--dhi-shadow);
-    background-image: linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,209,255,.22));
+    background: linear-gradient(135deg, var(--dhi-button-hover), var(--dhi-glass));
     color: var(--dhi-tx);
+}
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, var(--dhi-accent), var(--dhi-accent2));
+    border-color: transparent;
+    color: #06101a;
+}
+.stButton > button[kind="primary"]:hover { color: #06101a; }
+@media (max-width: 900px) {
+    [data-testid="stAppViewContainer"] > .main .block-container { padding: .75rem 1rem 3rem; }
+    .cmdbar { padding: 14px; gap: 8px; }
+    .cmdbar-chip:nth-of-type(n+4) { display: none; }
 }
 </style>
 """
@@ -165,86 +177,50 @@ section[data-testid="stSidebar"] .block-container { padding-top: 1rem; }
 # --------------------------------------------------------------------------- #
 _THEMES: dict[str, dict[str, str]] = {
     "dark": {
-        "APP_BG": ("radial-gradient(1400px 780px at 10% -8%, rgba(124,92,255,.34), transparent 62%),"
-                   "radial-gradient(1180px 680px at 96% 2%, rgba(0,209,255,.28), transparent 60%),"
-                   "radial-gradient(940px 740px at 46% 124%, rgba(255,94,177,.22), transparent 64%),"
-                   "repeating-linear-gradient(0deg, rgba(0,209,255,.030) 0 1px, transparent 1px 84px),"
-                   "repeating-linear-gradient(90deg, rgba(124,92,255,.030) 0 1px, transparent 1px 84px),"
-                   "linear-gradient(180deg,#0b0719 0%,#070a16 35%,#0a1226 72%,#120b22 100%)"),
-        "AURORA1": "rgba(124,92,255,.20)",
-        "AURORA2": "rgba(0,209,255,.15)",
-        "AURORA3": "rgba(255,94,177,.10)",
-        "SCAN": "repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px)",
-        "TX": "#e9edfa",
-        "TX_DIM": "#9aa6c8",
-        "TX_FAINT": "#6d779b",
-        "ACCENT": "#8b6bff",
-        "ACCENT2": "#00d1ff",
-        "ACCENT3": "#ff5eb1",
-        "GOLD": "#ffc257",
-        "GLASS": "rgba(255,255,255,.065)",
-        "GLASS_BD": "rgba(255,255,255,.12)",
-        "PANEL": "rgba(10,14,30,.55)",
-        "PANEL_BD": "rgba(124,92,255,.28)",
-        "INPUT_BG": "rgba(255,255,255,.075)",
-        "INPUT_BD": "rgba(0,209,255,.30)",
-        "USER_BUBBLE": "linear-gradient(135deg, rgba(124,92,255,.30), rgba(0,209,255,.16))",
-        "USER_TX": "#eef1ff",
-        "ASSIST_BG": "rgba(255,255,255,.055)",
-        "ASSIST_BD": "rgba(255,255,255,.12)",
-        "LINK": "#8fd3ff",
-        "CODE_BG": "rgba(13,18,38,.92)",
-        "SIDEBAR": "linear-gradient(180deg, rgba(15,20,44,.97), rgba(6,9,22,.99))",
-        "SIDEBAR_BD": "rgba(0,209,255,.14)",
-        "SCROLL": "linear-gradient(#8b6bff,#00d1ff)",
-        "SUCCESS": "#3dffa7",
-        "WARN": "#ffc257",
-        "SHADOW": "rgba(0,0,0,.38)",
-        "TOPBAR": ("linear-gradient(90deg, rgba(124,92,255,.22), rgba(0,209,255,.13) 50%,"
-                   "rgba(124,92,255,.22))"),
-        "SHINE": "linear-gradient(90deg, transparent, #8b6bff, #00d1ff, #ff5eb1, transparent)",
-        "BADGE_BG": "rgba(0,209,255,.10)",
+        "APP_BG": "linear-gradient(180deg,#080d14 0%,#0a1119 54%,#071018 100%)",
+        "AURORA1": "rgba(0,209,255,.11)", "AURORA2": "rgba(52,211,153,.10)",
+        "AURORA3": "rgba(255,183,77,.06)", "SCAN": "transparent",
+        "TX": "#e8f0f5", "TX_DIM": "#91a6b3", "TX_FAINT": "#607783",
+        "ACCENT": "#56e0c0", "ACCENT2": "#67c8ff", "ACCENT3": "#ffb45c",
+        "GOLD": "#ffc978", "GLASS": "rgba(225,242,247,.055)",
+        "GLASS_BD": "rgba(177,224,234,.15)", "PANEL": "rgba(10,22,29,.78)",
+        "PANEL_BD": "rgba(103,200,255,.20)", "INPUT_BG": "rgba(225,242,247,.075)",
+        "INPUT_BD": "rgba(103,200,255,.34)",
+        "USER_BUBBLE": "linear-gradient(135deg, rgba(86,224,192,.18), rgba(103,200,255,.12))",
+        "USER_TX": "#effffc", "ASSIST_BG": "rgba(225,242,247,.045)",
+        "ASSIST_BD": "rgba(177,224,234,.13)", "LINK": "#8bd8ff",
+        "CODE_BG": "rgba(5,14,20,.90)",
+        "SIDEBAR": "linear-gradient(180deg, rgba(8,17,24,.98), rgba(6,13,19,.99))",
+        "SIDEBAR_BD": "rgba(103,200,255,.16)", "SCROLL": "linear-gradient(#56e0c0,#67c8ff)",
+        "SUCCESS": "#56e0c0", "WARN": "#ffc978", "SHADOW": "rgba(0,0,0,.42)",
+        "TOPBAR": "linear-gradient(105deg, rgba(20,53,62,.90), rgba(12,35,45,.88) 56%, rgba(20,46,52,.90))",
+        "SHINE": "linear-gradient(90deg, transparent, #56e0c0, #67c8ff, transparent)",
+        "BADGE_BG": "rgba(86,224,192,.08)", "BUTTON_TOP": "rgba(225,242,247,.10)",
+        "BUTTON_BOTTOM": "rgba(225,242,247,.035)", "BUTTON_HOVER": "rgba(86,224,192,.18)",
     },
     "light": {
-        "APP_BG": ("radial-gradient(1400px 780px at 10% -8%, rgba(255,190,130,.38), transparent 62%),"
-                   "radial-gradient(1180px 680px at 96% 2%, rgba(124,204,255,.36), transparent 60%),"
-                   "radial-gradient(940px 740px at 46% 124%, rgba(255,156,222,.30), transparent 64%),"
-                   "repeating-linear-gradient(0deg, rgba(150,160,255,.05) 0 1px, transparent 1px 84px),"
-                   "repeating-linear-gradient(90deg, rgba(150,160,255,.05) 0 1px, transparent 1px 84px),"
-                   "linear-gradient(180deg,#fff8ee 0%,#fdf2ff 34%,#edf3ff 70%,#f2fbff 100%)"),
-        "AURORA1": "rgba(255,170,110,.18)",
-        "AURORA2": "rgba(120,190,255,.16)",
-        "AURORA3": "rgba(255,140,210,.10)",
-        "SCAN": "repeating-linear-gradient(0deg, rgba(90,100,160,.02) 0 1px, transparent 1px 3px)",
-        "TX": "#23283a",
-        "TX_DIM": "#5b6480",
-        "TX_FAINT": "#8b92a8",
-        "ACCENT": "#5b3ef0",
-        "ACCENT2": "#0f9dff",
-        "ACCENT3": "#ff5eb1",
-        "GOLD": "#ff9f45",
-        "GLASS": "rgba(255,255,255,.60)",
-        "GLASS_BD": "rgba(255,255,255,.95)",
-        "PANEL": "rgba(255,255,255,.62)",
-        "PANEL_BD": "rgba(91,62,240,.22)",
-        "INPUT_BG": "rgba(255,255,255,.88)",
-        "INPUT_BD": "rgba(15,157,255,.42)",
-        "USER_BUBBLE": "linear-gradient(135deg, rgba(105,67,255,.22), rgba(15,157,255,.16))",
-        "USER_TX": "#23283a",
-        "ASSIST_BG": "rgba(255,255,255,.66)",
-        "ASSIST_BD": "rgba(255,255,255,.95)",
-        "LINK": "#0b57c2",
-        "CODE_BG": "rgba(240,242,250,.92)",
-        "SIDEBAR": "linear-gradient(180deg, rgba(255,255,255,.94), rgba(240,244,255,.97))",
-        "SIDEBAR_BD": "rgba(120,140,255,.28)",
-        "SCROLL": "linear-gradient(#7c5cff,#0f9dff)",
-        "SUCCESS": "#0ea472",
-        "WARN": "#e0821a",
-        "SHADOW": "rgba(84,70,150,.16)",
-        "TOPBAR": ("linear-gradient(90deg, rgba(255,190,130,.32), rgba(124,204,255,.28) 50%,"
-                   "rgba(255,156,222,.30))"),
-        "SHINE": "linear-gradient(90deg, transparent, #7c5cff, #0f9dff, #ff5eb1, transparent)",
-        "BADGE_BG": "rgba(15,157,255,.10)",
+        "APP_BG": "linear-gradient(180deg,#f4f8f7 0%,#edf3f3 52%,#e8f0f2 100%)",
+        "AURORA1": "rgba(57,174,157,.08)", "AURORA2": "rgba(64,143,190,.09)",
+        "AURORA3": "rgba(225,161,78,.05)", "SCAN": "transparent",
+        "TX": "#1a2931", "TX_DIM": "#506673", "TX_FAINT": "#71848e",
+        "ACCENT": "#087f73", "ACCENT2": "#167cad", "ACCENT3": "#b66b16",
+        "GOLD": "#a96012", "GLASS": "rgba(255,255,255,.58)",
+        "GLASS_BD": "rgba(37,83,96,.16)", "PANEL": "rgba(255,255,255,.76)",
+        "PANEL_BD": "rgba(22,124,173,.20)", "INPUT_BG": "rgba(255,255,255,.88)",
+        "INPUT_BD": "rgba(22,124,173,.38)",
+        "USER_BUBBLE": "linear-gradient(135deg, rgba(8,127,115,.13), rgba(22,124,173,.10))",
+        "USER_TX": "#17262e", "ASSIST_BG": "rgba(255,255,255,.72)",
+        "ASSIST_BD": "rgba(37,83,96,.16)", "LINK": "#075e91",
+        "CODE_BG": "rgba(232,240,242,.94)",
+        "SIDEBAR": "linear-gradient(180deg, rgba(250,252,251,.98), rgba(235,243,244,.99))",
+        "SIDEBAR_BD": "rgba(22,124,173,.22)", "SCROLL": "linear-gradient(#087f73,#167cad)",
+        "SUCCESS": "#087f73", "WARN": "#a96012", "SHADOW": "rgba(35,68,78,.16)",
+        "TOPBAR": "linear-gradient(105deg, rgba(255,255,255,.88), rgba(224,241,242,.90) 56%, rgba(244,239,225,.88))",
+        "SHINE": "linear-gradient(90deg, transparent, #087f73, #167cad, transparent)",
+        "BADGE_BG": "rgba(22,124,173,.08)",
+        "BUTTON_TOP": "rgba(255,255,255,.92)",
+        "BUTTON_BOTTOM": "rgba(225,235,237,.78)",
+        "BUTTON_HOVER": "rgba(8,127,115,.12)",
     },
 }
 
@@ -303,6 +279,9 @@ _CSS_THEME = """
     --dhi-topbar: ##TOPBAR##;
     --dhi-shine: ##SHINE##;
     --dhi-badge-bg: ##BADGE_BG##;
+    --dhi-button-top: ##BUTTON_TOP##;
+    --dhi-button-bottom: ##BUTTON_BOTTOM##;
+    --dhi-button-hover: ##BUTTON_HOVER##;
 }
 
 /* ============ form widgets ============ */
