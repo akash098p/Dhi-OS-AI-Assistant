@@ -422,7 +422,6 @@ if st.session_state.autoplay_html:
     components.html(st.session_state.autoplay_html, height=0)
     st.session_state.autoplay_html = ""
 
-ui_styles.render_footer()
 
 
 
