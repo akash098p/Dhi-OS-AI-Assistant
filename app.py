@@ -24,7 +24,7 @@ from modules.webrtc_audio import AudioProcessor
 st.set_page_config(
     page_title="DHI OS v3.0",
     page_icon="🌸",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="expanded",
 )
 
@@ -433,18 +433,11 @@ if prompt:
     ph.empty()
     handle_command(prompt, source="text")
 
-# ---- voice console & capabilities (two-column, below conversation) ------------
-col_left, col_right = st.columns([5, 7], gap="large")
-
-with col_left:
-    ui_styles.render_section("🎙️ Voice console")
-    voice_panel()
-    if st.session_state.timers:
-        timers_fragment()
-
-with col_right:
-    ui_styles.render_section("✨ What I can do")
-    ui_styles.render_capability_list()
+# ---- voice console, below conversation ---------------------------------------
+ui_styles.render_section("🎙️ Voice console")
+voice_panel()
+if st.session_state.timers:
+    timers_fragment()
 
 # ---- voice replies (auto-play once) -------------------------------------------
 if st.session_state.autoplay_html:
