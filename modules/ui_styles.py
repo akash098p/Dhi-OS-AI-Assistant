@@ -43,6 +43,10 @@ body::after {
 @keyframes dhiOrbitReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
 @keyframes dhiStarDrift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-28px, 18px, 0); } }
 @keyframes dhiPulseLine { 0%, 100% { opacity: .35; transform: scaleX(.72); } 50% { opacity: 1; transform: scaleX(1); } }
+@keyframes dhiParticleFloat { 0%, 100% { transform: translate3d(0, 8px, 0) scale(.7); opacity: .15; } 50% { transform: translate3d(12px, -18px, 0) scale(1.25); opacity: .95; } }
+@keyframes dhiScan { 0% { transform: translateY(-130%); opacity: 0; } 18%, 70% { opacity: .8; } 100% { transform: translateY(330%); opacity: 0; } }
+@keyframes dhiEnergy { 0%, 100% { transform: scale(.84); opacity: .25; } 50% { transform: scale(1.22); opacity: .78; } }
+@keyframes dhiSatellite { from { transform: rotate(0deg) translateX(75px) rotate(0deg); } to { transform: rotate(360deg) translateX(75px) rotate(-360deg); } }
 
 /* ============ header & sidebar controls ====================================
    FIX: never hide <header> itself — the sidebar reopen control lives there.
@@ -441,6 +445,20 @@ _CSS_THEME = """
     box-shadow: 0 -12px 36px rgba(0, 194, 255, .22);
     transform: perspective(180px) rotateX(12deg);
 }
+.core-scan {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+}
+.core-scan::before {
+    content: ""; position: absolute; left: 8%; right: 8%; top: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(95, 226, 255, .8), transparent);
+    box-shadow: 0 0 18px rgba(0, 205, 255, .8); animation: dhiScan 5.5s ease-in-out infinite;
+}
+.hero-particle { position: absolute; z-index: 1; width: 4px; height: 4px; border-radius: 50%; background: #8aefff; box-shadow: 0 0 12px #00cfff; animation: dhiParticleFloat 3.8s ease-in-out infinite; }
+.hero-particle.p1 { left: 24%; top: 25%; animation-delay: -.8s; }
+.hero-particle.p2 { left: 31%; top: 70%; animation-delay: -2.4s; transform: scale(.7); }
+.hero-particle.p3 { right: 27%; top: 28%; animation-delay: -1.6s; }
+.hero-particle.p4 { right: 20%; top: 64%; animation-delay: -3s; transform: scale(.65); }
+.hero-particle.p5 { left: 14%; top: 48%; animation-delay: -2s; transform: scale(.6); }
 .hero-copy, .core-orbit { position: relative; z-index: 1; }
 .hero-copy { text-align: center; margin-top: 4px; }
 .hero-kicker { color: var(--dhi-accent2); font: 600 .65rem 'JetBrains Mono', monospace; letter-spacing: 3px; text-transform: uppercase; }
@@ -452,6 +470,7 @@ _CSS_THEME = """
 }
 .core-orbit::before { inset: 11px; box-shadow: 0 0 20px rgba(0, 210, 255, .38), inset 0 0 16px rgba(0, 210, 255, .25); }
 .core-orbit::after { inset: -2px 27px; transform: rotate(55deg); border-color: rgba(103, 224, 255, .42); animation: dhiOrbit 12s linear infinite; }
+.core-orbit::marker { content: ""; }
 .orbit-ring { position: absolute; inset: 21px; border: 1px dashed rgba(110, 221, 255, .55); border-radius: 50%; animation: dhiOrbitReverse 18s linear infinite; }
 .orbit-ring::before, .orbit-ring::after { content: ""; position: absolute; width: 5px; height: 5px; background: var(--dhi-accent2); border-radius: 50%; box-shadow: 0 0 12px var(--dhi-accent2); }
 .orbit-ring::before { top: 18px; left: 24px; }
@@ -464,6 +483,11 @@ _CSS_THEME = """
     box-shadow: 0 0 25px #00bfff, 0 0 75px rgba(0, 176, 255, .42), inset 0 0 22px rgba(209, 255, 255, .42);
     animation: dhiBreathe 3s ease-in-out infinite;
 }
+.core-emblem::before, .core-emblem::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+.core-emblem::before { inset: -13px; border: 1px solid rgba(0, 220, 255, .25); animation: dhiEnergy 2.6s ease-in-out infinite; }
+.core-emblem::after { inset: -25px; border: 1px solid rgba(0, 220, 255, .12); animation: dhiEnergy 2.6s .8s ease-in-out infinite; }
+.orbit-satellite { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #d5ffff; box-shadow: 0 0 14px #00d9ff; animation: dhiSatellite 6s linear infinite; }
+.orbit-satellite.s2 { animation-duration: 9s; animation-delay: -3s; }
 .core-status { margin-top: 7px; color: var(--dhi-accent); font: 600 .65rem 'JetBrains Mono', monospace; letter-spacing: 3px; }
 .hero-side-note { position: absolute; top: 45%; width: 120px; color: var(--dhi-tx-dim); font: .61rem/1.7 'JetBrains Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase; }
 .hero-side-note::after { content: ""; display: block; width: 28px; height: 2px; margin-top: 8px; background: var(--dhi-accent); animation: dhiPulseLine 2.4s ease-in-out infinite; }
@@ -747,10 +771,15 @@ def render_core_hero(mic_state: str = "STANDBY") -> None:
         st.markdown(
                 f"""
                 <section class="core-hero">
+                    <div class="core-scan"></div>
+                    <span class="hero-particle p1"></span><span class="hero-particle p2"></span>
+                    <span class="hero-particle p3"></span><span class="hero-particle p4"></span>
+                    <span class="hero-particle p5"></span>
                     <div class="hero-side-note left">THINK<br>UNDERSTAND<br>PLAN<br>EXECUTE<br>FOR YOU</div>
                     <div class="hero-side-note right">A SMARTER<br>DAY BEGINS<br>WITH A<br>SIMPLE HELLO</div>
                     <div class="core-orbit">
                         <div class="orbit-ring"></div>
+                        <div class="orbit-satellite"></div><div class="orbit-satellite s2"></div>
                         <div class="core-emblem">DHI</div>
                         <div class="core-status">{status}</div>
                     </div>
