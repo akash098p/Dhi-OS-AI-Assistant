@@ -114,9 +114,12 @@ def _identity_reply(ctx: dict) -> Reply:
 
 
 def capabilities_reply() -> Reply:
-    spoken = ("I'm Dhi. I can tell time and date, check weather and news, answer questions "
-              "with Wikipedia, do math, currency and unit conversions, define words, take "
-              "notes, run timers, play music, open websites, search the web, and crack jokes.")
+    spoken = ("I'm Dhi. Here is everything I do: I tell the time and date, check the "
+              "weather and the news, answer knowledge questions from Wikipedia, do math, "
+              "convert currency and units, define words, take notes, run timers, play "
+              "music, open websites, search the web, tell jokes, share quotes and fun "
+              "facts, flip coins, roll dice, remember your name, summarize our "
+              "conversation — and answer almost any question you type or speak.")
     display = (
         "### 🧰 Everything I can do\n\n"
         "| Skill | Try saying |\n|---|---|\n"
@@ -134,9 +137,43 @@ def capabilities_reply() -> Reply:
         "| 🔗 Websites | “open youtube” · “open github” |\n"
         "| 🔍 Search | “search quantum computing” |\n"
         "| 😄 Fun | “tell me a joke” · “flip a coin” · “roll a dice” |\n"
-        "| 👤 Personal | “my name is Alex” · “how are you” |"
+        "| 👤 Personal | “my name is Alex” · “how are you” |\n"
+        "| 📋 Recap | “summarize the conversation” · “recap our chat” |"
     )
     return Reply(spoken, display, icon="🧰")
+
+
+def _summary_reply(ctx: dict) -> Reply:
+    """Recap the recent conversation — LLM summary, offline bullet fallback.
+
+    ``ctx["history"]`` includes the just-sent command (the application appends
+    it before calling ``respond``); the last entry is the "summarize" request
+    itself, so it is dropped before building the recap.
+    """
+    history = list(ctx.get("history") or [])
+    if history and history[-1].get("role") == "user":
+        history = history[:-1]
+    talk = [m for m in history
+            if m.get("role") in ("user", "assistant") and m.get("content")]
+    if len(talk) < 2:
+        return Reply(
+            "We haven't talked long enough to summarize yet.",
+            "📋 **Conversation summary**\n\n_Nothing to recap yet — ask me a few "
+            "things, then say **“summarize the conversation”**._",
+            icon="📋",
+        )
+    llm_summary = llm.answer(
+        "Summarize our conversation so far in a few clear bullet points.",
+        talk or None, search=False,
+    )
+    if llm_summary:
+        return Reply(llm_summary, f"📋 {llm_summary}", icon="📋")
+    # Offline recap (no LLM configured): list what the user asked about.
+    user_qs = [m["content"].strip() for m in talk if m["role"] == "user"][-8:]
+    body = "\n".join(f"- _You asked:_ “{q}”" for q in user_qs)
+    spoken = ("Here is a recap of our conversation so far. " +
+              " ".join(f"You asked: {q}." for q in user_qs))
+    return Reply(spoken, f"📋 **Conversation summary**\n\n{body}", icon="📋")
 
 
 def _timer_reply(lowered: str) -> Reply:
@@ -215,6 +252,15 @@ def respond(command: str, ctx: dict) -> Reply:
         return _status_reply(ctx)
     if re.search(r"\bthanks?\b|\bthank you\b|\bappreciate\b", lowered):
         return Reply("You're welcome!", "💙 You're very welcome!", icon="💙")
+    # -- conversation summary ----------------------------------------------------
+    if (re.search(r"\b(?:summari[sz]e|summary|recap)\b[\s\S]{0,40}?\b"
+                  r"(?:conversation|chat|discussion|talk|session|history|questions?|so far)\b",
+                  lowered)
+            or re.search(r"\b(?:conversation|chat|discussion|talk|session)\b[\s\S]{0,40}?\b"
+                         r"(?:summari[sz]e|summary|recap)\b", lowered)
+            or re.match(r"^(?:please\s+)?(?:summari[sz]e|recap|tl;?dr|tldr)\s*"
+                        r"(?:this|that|it|the|our|everything|all|please)?[.!?]*$", lowered)):
+        return _summary_reply(ctx)
     # -- standby protocol -------------------------------------------------------
     if re.search(r"\b(?:shut\s*down|power\s*(?:down|off)|go\s+to\s+sleep|sleep\s+mode|stand\s*by|deactivate|deep\s+sleep)\b",
                  lowered):
@@ -378,12 +424,27 @@ def respond(command: str, ctx: dict) -> Reply:
                      f"🤝 Nice to meet you, **{name}**! I'll remember that.",
                      icon="🤝", action="set_name", data={"name": name})
 
+    # -- "detailed summary of <topic>" → Wikipedia knowledge ------------------------
+    m = re.search(r"\bsummary\s+of\s+(?:the\s+|recent\s+|latest\s+|new\s+|our\s+)*(.+)$",
+                  lowered)
+    if not m:
+        m = re.search(r"\b(?:summari[sz]e)\s+(?:the\s+|an?\s+)?(.+)$", lowered)
+    if m:
+        topic = re.sub(r"\b(?:recent|latest|new|the|this|that)\b", "",
+                       m.group(1).strip()).strip(" ,;:-")
+        spoken, display = skills.wiki_summary(topic or m.group(1).strip())
+        if not spoken.startswith("Sorry"):
+            return Reply(spoken, display, icon="📚")
+        # Topic had no usable page — fall through to the LLM / web answer below.
+
     # -- knowledge (Wikipedia) --------------------------------------------------------
     m = re.search(r"\b(?:who\s+(?:is|was|are)|what\s+(?:is|are|was)|tell\s+me\s+about"
                   r"|search\s+wikipedia\s+for)\s+(.+)$", lowered)
     if m:
         spoken, display = skills.wiki_summary(m.group(1).strip())
-        return Reply(spoken, display, icon="📚")
+        if not spoken.startswith("Sorry"):
+            return Reply(spoken, display, icon="📚")
+        # Wikipedia had no usable page — fall through to the LLM / web answer below.
 
     # -- graceful fallback: real answers via the LLM (Gemini → OpenRouter) -------------
     # No regex skill matched — ask the big brain. Recent chat history is passed
@@ -396,6 +457,19 @@ def respond(command: str, ctx: dict) -> Reply:
     if llm_reply:
         return Reply(llm_reply, f"🌐 {llm_reply}", icon="🌐")
 
+    # -- last resort: live web snippets so the user still gets real information --
+    snippets = llm.web_search(text, limit=4)
+    if snippets:
+        _, _, snip_lines = snippets.partition("\n")
+        first = next((s.strip("• ").split(": ", 1)[-1]
+                      for s in snip_lines.splitlines() if s.strip("• ")), "")
+        spoken = (f"I couldn't map that to a skill, but here is a quick web "
+                  f"answer. {first}".strip())
+        display = (f"🌐 **Quick findings for “{text}”**\n\n{snip_lines}\n\n"
+                   f"- [🔍 Google]({skills.google_url(text)})\n"
+                   f"- [🦆 DuckDuckGo]({skills.duck_url(text)})\n\n"
+                   f"_Say_ **“what can you do”** _to see everything I master._")
+        return Reply(spoken, display, icon="🌐")
     spoken = f"I'm not sure about that. Here's a web search for {text}."
     display = (f"🤔 I couldn't map **“{text}”** to a skill yet — try one of these:\n\n"
                f"- [🔍 Google]({skills.google_url(text)})\n"
