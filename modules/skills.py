@@ -171,7 +171,7 @@ def format_news(topic: str | None = None) -> tuple[str, str]:
     if not items:
         return ("Sorry, I couldn't fetch the news right now.",
                 f"📡 Couldn't fetch **{label}** — try again in a moment.")
-    lead = ". ".join(i["title"] for i in items[:3]) + "."
+    lead = ". ".join(i["title"] for i in items) + "."
     spoken = f"Here are the top headlines{' about ' + topic if topic else ''}. {lead}"
     lines = "\n".join(f"- [{i['title']}]({i['link']}) — _{i['source']}_" for i in items)
     return spoken, f"📰 **{label}**\n\n{lines}"
@@ -191,9 +191,10 @@ def wiki_summary(query: str) -> tuple[str, str]:
             return (f"Sorry, I couldn't find anything about {query}.",
                     f"🔍 No Wikipedia results for **{query}**.")
         title = matches[0]
-        summary = wiki.summary(title, sentences=2, auto_suggest=False)
+        summary = wiki.summary(title, sentences=4, auto_suggest=False)
         url = "https://en.wikipedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_"))
-        spoken = summary.split(". ")[0] + "."
+        # Speak the *whole* summary — Dhi reads back everything she shows.
+        spoken = summary.rstrip(".") + "."
         display = f"📚 **{title}**\n\n{summary}\n\n[Read more on Wikipedia]({url})"
         return spoken, display
     except wiki.exceptions.DisambiguationError:
@@ -203,7 +204,7 @@ def wiki_summary(query: str) -> tuple[str, str]:
         return (f"Sorry, I could not find any information on {query}.",
                 f"🔍 No Wikipedia page found for **{query}**.")
     except Exception:
-        return ("Wikipedia seems unreachable right now.",
+        return ("Sorry, Wikipedia seems unreachable right now.",
                 "📡 Wikipedia is unreachable right now.")
 
 
@@ -286,6 +287,8 @@ def format_definition(word: str) -> tuple[str, str]:
         return (f"Sorry, I couldn't find a definition for {word}.",
                 f"📖 No definition found for **{word}**.")
     spoken = f"{data['word']}, {data['pos']}: {data['definition']}"
+    if data["example"]:
+        spoken += f" For example, {data['example']}"
     display = (f"📖 **{data['word']}** {data['phonetic']}  _({data['pos']})_\n\n"
                f"> {data['definition']}")
     if data["example"]:
