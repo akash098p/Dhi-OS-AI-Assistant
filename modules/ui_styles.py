@@ -1007,6 +1007,7 @@ def render_capability_list() -> None:
         "📖 Dictionary definitions", "📝 Voice notes",
         "⏲️ Timers with alerts", "🎵 Music & website shortcuts",
         "😄 Jokes, quotes & facts", "🗣️ Multi-language voice",
+        "📋 Conversation summaries", "🌐 Answers to almost any question",
     ]
     rows = "".join(f'<div class="cap">{c}</div>' for c in caps)
     st.markdown(f'<div class="cap-list">{rows}</div>', unsafe_allow_html=True)
@@ -1022,7 +1023,8 @@ def render_empty_state() -> None:
           or type below. Hands-free mode sends your speech automatically when you pause.</p>
           <div class="empty-tips">
             “Dhi, what's the weather in Tokyo?” · “system status”<br>
-            “calculate 18% of 2450” · “set a timer for 2 minutes” · “good morning, sir”
+            “calculate 18% of 2450” · “set a timer for 2 minutes” · “good morning, sir”<br>
+            “summarize the conversation” · “who was Nikola Tesla?”
           </div>
         </div>
         """,
