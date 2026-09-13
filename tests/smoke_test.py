@@ -48,6 +48,12 @@ beep = speech.alert_beep()
 check("alert_beep returns WAV bytes", isinstance(beep, bytes) and beep[:4] == b"RIFF")
 check("autoplay_html empty-safe", speech.autoplay_html(None) == "")
 
+_clean = speech.clean_for_tts("**Bold** [Google](https://google.com) and | a | b | 😀 ok")
+check("clean_for_tts strips markdown/emoji",
+      "**" not in _clean and "Google" in _clean and "|" not in _clean
+      and "😀" not in _clean and "ok" in _clean)
+check("clean_for_tts empty-safe", speech.clean_for_tts("") == "")
+
 
 class _FakeTranslate:
     """Mimics translatepy 2.x: the translation lives on ``.result``."""
@@ -168,8 +174,55 @@ r = brain.respond("search quantum computing", ctx)
 check("web search", "google.com/search" in r.display)
 r = brain.respond("play bohemian rhapsody", ctx)
 check("play music", "youtube.com" in r.display)
+_orig_web_search = llm.web_search
+# Bare-mode st.secrets calls (e.g. the weather test) re-inject the real keys
+# into os.environ — pop again so the LLM stays mocked here.
+for _k in _LLM_KEYS:
+    os.environ.pop(_k, None)
+llm.web_search = lambda q, limit=3: (
+    "Recent web info (from web search):\n"
+    "• Example Post: This is a live-looking snippet about the topic.")
+
+print("- summaries & live fallback (llm mocked offline) -")
 r = brain.respond("xyzzy plugh", ctx)
 check("fallback gives search links", "google.com/search" in r.display)
+check("fallback surfaces live info", "Example Post" in r.display)
+
+r = brain.respond(
+    "summarize the conversation",
+    {"history": [{"role": "user", "content": "weather in kolkata"},
+                 {"role": "assistant", "content": "It's 30 degrees."},
+                 {"role": "user", "content": "summarize the conversation"}]})
+check("conversation summary recap",
+      r.icon == "📋" and "weather in kolkata" in r.display)
+r = brain.respond(
+    "recap our chat",
+    {"history": [{"role": "user", "content": "hello"},
+                 {"role": "assistant", "content": "Hi there!"},
+                 {"role": "user", "content": "recap our chat"}]})
+check("bare recap summarises", r.icon == "📋")
+
+_orig_wiki = skills.wiki_summary
+skills.wiki_summary = lambda q: (
+    "War and Peace is a novel by Leo Tolstoy, first published in 1869.",
+    "📚 **War and Peace**\n\nA short stub used for offline tests.")
+r = brain.respond("summarize the book war and peace", {"history": []})
+check("'summarize <topic>' routes to wiki",
+      r.icon == "📚" and "Tolstoy" in r.spoken)
+r = brain.respond("give a detailed summary of recent BRICS 2026 summit",
+                  {"history": []})
+check("'detailed summary of <topic>' routes to wiki",
+      r.icon == "📚" and "Tolstoy" in r.spoken)
+check("book summary is not hijacked", r.icon != "📋")
+
+skills.wiki_summary = lambda q: ("Sorry, I couldn't find anything about it.",
+                                 "🔍 No Wikipedia results for **it**.")
+r = brain.respond("who is zzzqq", ctx)
+check("wiki miss falls through to web answer", "Example Post" in r.display)
+r = brain.respond("give a detailed summary of zzzqq", {"history": []})
+check("topic summary wiki miss falls through", "Example Post" in r.display)
+skills.wiki_summary = _orig_wiki
+llm.web_search = _orig_web_search
 
 print("- dhi protocol intents -")
 r = brain.respond("good morning sir", {})
@@ -245,6 +298,15 @@ check("should_search year", llm.should_search("what happened in 2024") is True)
 check("should_search plain knowledge", llm.should_search("who is Ada Lovelace") is False)
 sr = llm.web_search("python programming language")
 check("web_search is str or graceful None", sr is None or isinstance(sr, str))
+import datetime as _dt  # noqa: E402
+check("today line carries current date",
+      str(_dt.datetime.now().year) in llm._today_line())
+check("system prompt carries date", "Today's date:" in llm._system_prompt())
+_year = str(_dt.datetime.now().year)
+check("search query year-biased for fresh results",
+      llm._search_query("india cricket upcoming matches").endswith(_year))
+check("search query keeps explicit year",
+      llm._search_query("ipl 2024 final") == "ipl 2024 final")
 os.environ["GEMINI_API_KEY"] = "test-key"
 check("enabled() flips on with env key", llm.enabled() is True)
 os.environ.pop("GEMINI_API_KEY", None)
