@@ -83,6 +83,45 @@ def _tts_lang_code(language_label: str = "English (US)") -> str:
     return TTS_LANGUAGES.get(language_label, ("en", "com"))[0]
 
 
+# Emoji & symbol ranges that make no sense to a speech synthesizer.
+_EMOJI_RE = re.compile(
+    "[\U0001F000-\U0001FAFF"         # emoticons, pictographs, symbols
+    "\u2300-\u23FF"                  # misc technical (⏰ clocks, ⚙)
+    "\u2600-\u27BF"                  # misc symbols + dingbats (☀ ⭐ ✈)
+    "\u2B00-\u2BFF"                  # arrows / symbols (⬆ ★)
+    "\u2190-\u21FF"                  # arrows
+    "\uFE0F\u200D\u20E3]"            # variation selectors, ZWJ, keycaps
+)
+
+
+def clean_for_tts(text: str) -> str:
+    """Strip markdown/emoji/URLs so the synthesizer reads *all* the real text.
+
+    The chat bubbles are markdown (bold, links, tables, emojis). Left as-is,
+    Google TTS either mumbles the formatting characters or silently drops
+    chunks of the reply, so Dhi wouldn't read back everything she wrote. This
+    converts a bubble into clean, speakable prose.
+    """
+    if not text:
+        return ""
+    t = text
+    t = re.sub(r"```.*?```", " ", t, flags=re.DOTALL)          # code blocks
+    t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)             # [label](url) -> label
+    t = re.sub(r"https?://\S+|www\.\S+", " ", t)               # bare URLs
+    t = re.sub(r"(?m)^\s*#{1,6}\s*", "", t)                    # # headings
+    t = re.sub(r"(?m)^\s*>\s?", "", t)                         # blockquotes
+    t = re.sub(r"(?m)^\s*\|[\s:|\-]+\|\s*$", "", t)            # table separator rows
+    t = re.sub(r"\s*\|\s*", ", ", t)                           # table pipes -> commas
+    t = re.sub(r"(?m)^\s*[-*+]\s+", "", t)                     # '  - bullet' -> text
+    t = re.sub(r"\*\*([^*]+?)\*\*", r"\1", t)                  # **bold**
+    t = re.sub(r"\*([^*]+?)\*", r"\1", t)                      # *italic*
+    t = re.sub(r"(?<![A-Za-z0-9_])_([^_]{1,60})_(?![A-Za-z0-9_])", r"\1", t)  # _italics_
+    t = re.sub(r"[`_*]", " ", t)                               # stray markers
+    t = _EMOJI_RE.sub(" ", t)                                  # emojis
+    t = re.sub(r"\s+", " ", t).strip(" ,;:")                   # normalise spaces
+    return t.strip()
+
+
 _TRANSLATOR: object = None
 
 
@@ -126,11 +165,19 @@ def translate_text(text: str, language_label: str = "English (US)") -> str:
 
 
 def tts_bytes(text: str, language_label: str = "English (US)", slow: bool = False) -> bytes | None:
-    """Synthesize ``text`` and return MP3 bytes (``None`` on failure)."""
+    """Synthesize ``text`` and return MP3 bytes (``None`` on failure).
+
+    The text is cleaned first (``clean_for_tts``) so every word Dhi wrote in
+    the bubble is actually spoken — markdown symbols, emojis and URLs are
+    stripped instead of being read aloud or silently dropping speech.
+    """
     lang, tld = TTS_LANGUAGES.get(language_label, ("en", "com"))
+    cleaned = clean_for_tts(text)
+    if not cleaned:
+        return None
     try:
         fp = io.BytesIO()
-        gTTS(text=text, lang=lang, tld=tld, slow=slow).write_to_fp(fp)
+        gTTS(text=cleaned, lang=lang, tld=tld, slow=slow).write_to_fp(fp)
         fp.seek(0)
         return fp.getvalue()
     except Exception:
